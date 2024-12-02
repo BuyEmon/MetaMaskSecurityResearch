@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Ethereum Wallet</title>
+</head>
+<body>
+    <h1>Create Ethereum Wallet</h1>
+    <button id="generateWallet">Generate Wallet</button>
+    <div id="walletDetails"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.9/dist/ethers.umd.min.js"></script>
+    <script>
+        document.getElementById("generateWallet").addEventListener("click", () => {
+            const wallet = ethers.Wallet.createRandom();
+            const walletDetails = `
+                <p><strong>Address:</strong> ${wallet.address}</p>
+                <p><strong>Private Key:</strong> ${wallet.privateKey}</p>
+                <p><strong>Mnemonic:</strong> ${wallet.mnemonic.phrase}</p>
+            `;
+            document.getElementById("walletDetails").innerHTML = walletDetails;
+            console.log("Wallet Details:", wallet);
+        });
+    </script>
+</body>
+</html>
