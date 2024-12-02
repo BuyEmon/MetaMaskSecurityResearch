@@ -4,30 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetaMask Security Research</title>
+    <!-- Load ethers.js from a compatible CDN -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
 </head>
 <body>
     <h1>MetaMask Security Research</h1>
     <button id="connectWallet">Connect Wallet</button>
     <div id="walletAddress"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
     <script>
+        // Event listener for the Connect Wallet button
         document.getElementById("connectWallet").addEventListener("click", async () => {
+            // Check if MetaMask is installed
             if (typeof window.ethereum !== "undefined") {
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
                 try {
-                    await provider.send("eth_requestAccounts", []);
-                    const signer = provider.getSigner();
-                    const walletAddress = await signer.getAddress();
-                    document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;
+                    // Create a new provider and request accounts
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);  // Request account access
+                    const signer = provider.getSigner();  // Get the signer (wallet)
+                    const walletAddress = await signer.getAddress();  // Get wallet address
+                    document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;  // Show address
                 } catch (error) {
-                    alert("Failed to connect wallet. Please check MetaMask or try again.");
-                    console.error(error); // Log the error to the console for debugging
+                    // Handle errors (e.g., user rejects connection)
+                    console.error(error);
+                    document.getElementById("walletAddress").innerText = "Failed to connect wallet. Please check MetaMask or try again.";
                 }
             } else {
+                // Alert if MetaMask is not installed
                 alert("MetaMask is not installed!");
             }
         });
     </script>
 </body>
 </html>
+
