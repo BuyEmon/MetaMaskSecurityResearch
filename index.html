@@ -12,25 +12,20 @@
 
     <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
     <script>
-        // Check if MetaMask is available and inject provider
         document.getElementById("connectWallet").addEventListener("click", async () => {
             if (typeof window.ethereum !== "undefined") {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
                 try {
-                    // Request accounts from MetaMask
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
                     await provider.send("eth_requestAccounts", []);
                     const signer = provider.getSigner();
-                    
-                    // Get wallet address
                     const walletAddress = await signer.getAddress();
                     document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;
                 } catch (error) {
-                    // Handle errors (e.g., user rejects MetaMask connection)
-                    console.error("Error connecting to MetaMask:", error);
                     alert("Failed to connect wallet. Please check MetaMask or try again.");
+                    console.error(error); // Log the error to the console for debugging
                 }
             } else {
-                alert("MetaMask is not installed! Please install it first.");
+                alert("MetaMask is not installed!");
             }
         });
     </script>
