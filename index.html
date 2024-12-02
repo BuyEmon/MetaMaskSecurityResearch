@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval';">
     <title>MetaMask Security Research</title>
 </head>
 <body>
@@ -11,33 +10,23 @@
     <button id="connectWallet">Connect Wallet</button>
     <div id="walletAddress"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.9/dist/ethers.umd.min.js"></script>
     <script>
         document.getElementById("connectWallet").addEventListener("click", async () => {
-            // Check if MetaMask is installed
             if (typeof window.ethereum !== "undefined") {
-                try {
-                    // Request accounts from MetaMask
-                    await window.ethereum.request({ method: "eth_requestAccounts" });
-
-                    // Create provider and signer using ethers.js
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const signer = provider.getSigner();
-                    
-                    // Get the connected wallet address
-                    const walletAddress = await signer.getAddress();
-                    
-                    // Display the wallet address
-                    document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;
-                } catch (error) {
-                    // Handle any errors that occur while connecting to MetaMask
-                    document.getElementById("walletAddress").innerText = "Failed to connect to MetaMask. Please check your MetaMask extension.";
-                    console.error("Error connecting to MetaMask", error);
-                }
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                const signer = provider.getSigner();
+                const walletAddress = await signer.getAddress();
+                document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;
             } else {
-                alert("MetaMask is not installed. Please install MetaMask and try again.");
+                alert("MetaMask is not installed!");
             }
-      
+        });
+    </script>
+</body>
+</html>
+
 
 
 
