@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask Security Research</title>
+</head>
+<body>
+    <h1>MetaMask Security Research</h1>
+    <button id="connectWallet">Connect Wallet</button>
+    <div id="walletAddress"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+    <script>
+        // Check if MetaMask is available and inject provider
+        document.getElementById("connectWallet").addEventListener("click", async () => {
+            if (typeof window.ethereum !== "undefined") {
+                try {
+                    // Request accounts from MetaMask
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    const signer = provider.getSigner();
+                    
+                    // Get wallet address
+                    const walletAddress = await signer.getAddress();
+                    document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;
+                } catch (error) {
+                    // Handle errors (e.g., user rejects MetaMask connection)
+                    console.error("Error connecting to MetaMask:", error);
+                    alert("Failed to connect wallet. Please check MetaMask or try again.");
+                }
+            } else {
+                alert("MetaMask is not installed! Please install it first.");
+            }
+        });
+    </script>
+</body>
+</html>
