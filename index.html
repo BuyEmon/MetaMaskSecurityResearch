@@ -9,23 +9,48 @@
     <h1>MetaMask Security Research</h1>
     <button id="connectWallet">Connect Wallet</button>
     <div id="walletAddress"></div>
+    <button id="sendTransaction" style="display: none;">Send Test Transaction</button>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.9/dist/ethers.umd.min.js"></script>
     <script>
+        let signer;
+
+        // Connect Wallet Functionality
         document.getElementById("connectWallet").addEventListener("click", async () => {
             if (typeof window.ethereum !== "undefined") {
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
                 await provider.send("eth_requestAccounts", []);
-                const signer = provider.getSigner();
+                signer = provider.getSigner();
                 const walletAddress = await signer.getAddress();
                 document.getElementById("walletAddress").innerText = `Connected: ${walletAddress}`;
+                document.getElementById("sendTransaction").style.display = "block";
             } else {
                 alert("MetaMask is not installed!");
+            }
+        });
+
+        // Send Transaction Functionality
+        document.getElementById("sendTransaction").addEventListener("click", async () => {
+            if (signer) {
+                try {
+                    const tx = await signer.sendTransaction({
+                        to: "0xbECAC432D622DC4aF960B2ce30E50F4939d6Ba2D", // Replace with a valid testnet address
+                        value: ethers.utils.parseEther("0.01"), // Sending 0.01 test ETH
+                    });
+                    console.log("Transaction sent: ", tx.hash);
+                    alert(`Transaction sent! Tx Hash: ${tx.hash}`);
+                } catch (error) {
+                    console.error("Error sending transaction: ", error);
+                    alert("Transaction failed. Check console for details.");
+                }
+            } else {
+                alert("Wallet not connected. Please connect the wallet first.");
             }
         });
     </script>
 </body>
 </html>
+
 
 
 
