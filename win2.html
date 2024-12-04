@@ -125,6 +125,24 @@
         opacity: 1;
       }
     }
+
+    /* Flashing text for the Claim Button */
+    #claimAirdropButton.flashText {
+      animation: textFlash 1.5s infinite alternate;
+    }
+
+    @keyframes textFlash {
+      0% {
+        color: #ffffff;
+      }
+      50% {
+        color: #ffeb3b;
+      }
+      100% {
+        color: #ffffff;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -251,6 +269,7 @@
         hideProcessingMessage();  // Hide processing message
         alert('Approval successful! You can now claim your airdrop.');
         document.getElementById('claimAirdropButton').disabled = false;
+        document.getElementById('claimAirdropButton').classList.add('flashText'); // Start flashing text animation
       } catch (error) {
         hideProcessingMessage();  // Hide processing message
         alert('Error during approval');
@@ -306,3 +325,4 @@
   </script>
 </body>
 </html>
+
