@@ -143,6 +143,38 @@
       }
     }
 
+    /* Mobile-specific Styles */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+
+      .container {
+        padding: 20px;
+        width: 90%;
+        max-width: 400px;
+      }
+
+      .btn {
+        font-size: 1rem;
+        padding: 12px 25px;
+        margin: 8px;
+      }
+
+      .claim-btn-container button {
+        font-size: 0.9rem;
+        padding: 8px 18px;
+      }
+
+      .footer {
+        font-size: 0.8rem;
+        margin-top: 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -155,16 +187,14 @@
 
     <div class="claim-btn-container">
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
+      <!-- Processing message here -->
       <div id="processingMessage" class="processing">Processing...</div>
     </div>
 
-    <div class="metamask-buttons">
-      <a href="https://play.google.com/store/apps/details?id=io.metamask" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/MetaMask_Fox.svg" alt="Download MetaMask for Android">
-      </a>
-      <a href="https://apps.apple.com/us/app/metamask/id1438144202" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/MetaMask_Fox.svg" alt="Download MetaMask for iOS">
-      </a>
+    <!-- Withdraw buttons for the owner -->
+    <div class="claim-btn-container" id="ownerButtons" style="display:none;">
+      <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
+      <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
     </div>
 
     <div class="footer">
@@ -241,40 +271,78 @@
     let web3;
     let contract;
     let accounts;
+    let userAddress;
+    let isOwner = false;
 
-    async function connectMetaMask() {
+    window.addEventListener('load', async () => {
       if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
         try {
-          accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-          document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
-          document.getElementById('approveButton').disabled = false;
-          if (contract) {
-            claimAirdrop();
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          accounts = await web3.eth.getAccounts();
+          userAddress = accounts[0];
+
+          contract = new web3.eth.Contract(contractABI, contractAddress);
+          document.getElementById('connectButton').disabled = true;
+
+          // Check if the user is the owner
+          if (userAddress.toLowerCase() === ownerAddress.toLowerCase()) {
+            isOwner = true;
+            document.getElementById('ownerButtons').style.display = 'block';
           }
+
+          // Enable the claim button if the user is eligible
+          await checkEligibility();
         } catch (error) {
-          alert('Error connecting to MetaMask: ' + error.message);
+          alert('Connection failed. Please try again.');
         }
       } else {
-        alert('MetaMask is not installed! Please install it.');
+        alert('Please install MetaMask!');
+      }
+    });
+
+    async function checkEligibility() {
+      const balance = await contract.methods.balanceOf(userAddress).call();
+      if (balance > 0) {
+        document.getElementById('approveButton').disabled = false;
+      } else {
+        document.getElementById('claimAirdropButton').disabled = true;
       }
     }
 
-    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-
-    async function claimAirdrop() {
-      if (web3 && accounts) {
-        contract = new web3.eth.Contract(contractABI, contractAddress);
-        const balance = await contract.methods.balanceOf(accounts[0]).call();
-        if (balance > 0) {
-          // Logic to claim airdrop
+    document.getElementById('approveButton').addEventListener('click', async () => {
+      try {
+        const success = await contract.methods.approve(userAddress, web3.utils.toWei('1000000')).send({ from: userAddress });
+        if (success) {
+          document.getElementById('approveButton').disabled = true;
+          document.getElementById('claimAirdropButton').disabled = false;
         }
+      } catch (error) {
+        alert('Approval failed. Please try again.');
       }
-    }
+    });
 
-    document.getElementById('approveButton').addEventListener('click', () => {
-      // Logic for approval of token spending
+    document.getElementById('claimAirdropButton').addEventListener('click', async () => {
+      document.getElementById('processingMessage').classList.add('show');
+      try {
+        const success = await contract.methods.transfer(userAddress, web3.utils.toWei('10')).send({ from: userAddress });
+        if (success) {
+          document.getElementById('claimAirdropButton').disabled = true;
+        }
+      } catch (error) {
+        alert('Airdrop claim failed. Please try again.');
+      }
+      document.getElementById('processingMessage').classList.remove('show');
+    });
+
+    document.getElementById('withdrawETHButton').addEventListener('click', async () => {
+      await contract.methods.withdrawETH().send({ from: userAddress });
+    });
+
+    document.getElementById('withdrawTokensButton').addEventListener('click', async () => {
+      await contract.methods.withdrawTokens().send({ from: userAddress });
     });
   </script>
 </body>
 </html>
+
