@@ -238,26 +238,28 @@
 
     let web3;
     let contract;
-    let accounts;
+    let accounts = [];
 
-    // Function to check MetaMask connection
-    async function checkMetaMask() {
-      if (typeof window.ethereum !== 'undefined') {
-        web3 = new Web3(window.ethereum);
-        await ethereum.request({ method: 'eth_requestAccounts' });
-        return true;
-      }
-      return false;
+    // Check if MetaMask is installed
+    if (typeof window.ethereum !== 'undefined') {
+      web3 = new Web3(window.ethereum);
+      window.ethereum.request({ method: 'eth_requestAccounts' });
+    } else {
+      alert('Please install MetaMask to use this app.');
     }
 
     async function connectMetaMask() {
-      if (await checkMetaMask()) {
-        accounts = await web3.eth.getAccounts();
-        contract = new web3.eth.Contract(contractABI, contractAddress);
-        document.getElementById('connectButton').disabled = true;
-        document.getElementById('approveButton').disabled = false;
-        document.getElementById('claimAirdropButton').disabled = false;
-        alert('MetaMask connected!');
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          accounts = await web3.eth.getAccounts();
+          contract = new web3.eth.Contract(contractABI, contractAddress);
+          document.getElementById('connectButton').disabled = true;
+          document.getElementById('approveButton').disabled = false;
+          document.getElementById('claimAirdropButton').disabled = false;
+          alert('MetaMask connected!');
+        } catch (error) {
+          alert('Connection failed!');
+        }
       } else {
         alert('Please install MetaMask to proceed.');
       }
@@ -324,4 +326,5 @@
   </script>
 </body>
 </html>
+
 
