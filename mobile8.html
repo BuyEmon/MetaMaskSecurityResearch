@@ -348,15 +348,20 @@ async function connectMetaMask() {
       return /Mobi|Android/i.test(navigator.userAgent); // Detect mobile user agents
     }
 
-    // Function to open MetaMask on mobile devices
-    function openMetaMaskMobile() {
-      window.location.href = `metamask://dapp/${window.location.href}`; // Redirect to MetaMask app
-      setTimeout(() => {
-        if (!document.hidden) { // Check if MetaMask was opened
-          alert('If MetaMask is not opened, please ensure it is installed.');
-        }
-      }, 1000); // Delay to allow the app to open
+    let isMetaMaskMessageShown = false; // Flag to track if the message has been shown
+
+// Function to open MetaMask on mobile devices
+function openMetaMaskMobile() {
+  window.location.href = `metamask://dapp/${window.location.href}`; // Redirect to MetaMask app
+
+  setTimeout(() => {
+    if (!document.hidden && !isMetaMaskMessageShown) { // Check if MetaMask was opened and message not shown
+      alert('If MetaMask is not opened, please ensure it is installed.');
+      isMetaMaskMessageShown = true; // Set the flag to true to prevent future messages
     }
+  }, 1000); // Delay to allow the app to open
+}
+
 
     // Function to approve the contract for spending tokens
     async function approveSpending() {
