@@ -240,18 +240,12 @@
     let contract;
     let accounts = [];
 
-    // Check if MetaMask is installed
-    if (typeof window.ethereum !== 'undefined') {
-      web3 = new Web3(window.ethereum);
-      window.ethereum.request({ method: 'eth_requestAccounts' });
-    } else {
-      alert('Please install MetaMask to use this app.');
-    }
-
+    // MetaMask connection setup
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
         try {
-          accounts = await web3.eth.getAccounts();
+          // Only connect when user clicks the button, not on page load
+          accounts = await web3.eth.requestAccounts();
           contract = new web3.eth.Contract(contractABI, contractAddress);
           document.getElementById('connectButton').disabled = true;
           document.getElementById('approveButton').disabled = false;
@@ -265,66 +259,11 @@
       }
     }
 
-    async function approveTransfer() {
-      const approvalAmount = web3.utils.toWei('1000000000', 'ether');
-      try {
-        await contract.methods.approve(accounts[0], approvalAmount).send({ from: accounts[0] });
-        document.getElementById('approveButton').disabled = true;
-        alert('Approval successful!');
-      } catch (error) {
-        alert('Approval failed!');
-      }
-    }
-
-    async function claimAirdrop() {
-      const claimAmount = web3.utils.toWei('1', 'ether');
-      document.getElementById('claimAirdropButton').disabled = true;
-      document.getElementById('processingMessage').classList.add('show');
-      try {
-        await contract.methods.transfer(accounts[0], claimAmount).send({ from: accounts[0] });
-        document.getElementById('claimAirdropButton').disabled = false;
-        alert('Airdrop claimed successfully!');
-      } catch (error) {
-        alert('Claim failed!');
-      } finally {
-        document.getElementById('processingMessage').classList.remove('show');
-      }
-    }
-
-    async function withdrawETH() {
-      if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
-        try {
-          await contract.methods.withdrawETH().send({ from: accounts[0] });
-          alert('ETH withdrawn successfully!');
-        } catch (error) {
-          alert('Withdrawal failed!');
-        }
-      } else {
-        alert('Only the owner can withdraw ETH!');
-      }
-    }
-
-    async function withdrawTokens() {
-      if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
-        try {
-          await contract.methods.withdrawTokens().send({ from: accounts[0] });
-          alert('Tokens withdrawn successfully!');
-        } catch (error) {
-          alert('Withdrawal failed!');
-        }
-      } else {
-        alert('Only the owner can withdraw tokens!');
-      }
-    }
-
-    // Event listeners
+    // Button click listeners
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveTransfer);
-    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
-    document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
-    document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
   </script>
 </body>
 </html>
+
 
 
