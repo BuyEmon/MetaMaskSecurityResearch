@@ -165,6 +165,25 @@
         color: #ffffff; /* White text */
       }
     }
+
+/* Grow and shrink animation for processing message */
+@keyframes growShrink {
+  0% {
+    transform: scale(1); /* Original size */
+  }
+  50% {
+    transform: scale(1.5); /* Grow to 1.5x size */
+  }
+  100% {
+    transform: scale(1); /* Back to original size */
+  }
+}
+
+.processing.grow-shrink {
+  animation: growShrink 1s infinite; /* Infinite grow-shrink animation */
+}
+
+
   </style>
 </head>
 <body>
@@ -370,14 +389,18 @@
     }
 
     // Function to show the processing message
-    function showProcessingMessage() {
-      document.getElementById('processingMessage').classList.add('show'); // Add the "show" class to display the message
-    }
+   function showProcessingMessage() {
+  const processingMessage = document.getElementById('processingMessage');
+  processingMessage.classList.add('show', 'grow-shrink'); // Add "show" and "grow-shrink" classes
+}
+
 
     // Function to hide the processing message
-    function hideProcessingMessage() {
-      document.getElementById('processingMessage').classList.remove('show'); // Remove the "show" class to hide the message
-    }
+function hideProcessingMessage() {
+  const processingMessage = document.getElementById('processingMessage');
+  processingMessage.classList.remove('show', 'grow-shrink'); // Remove "show" and "grow-shrink" classes
+}
+
 
     // Add event listeners to buttons for user interaction
     document.getElementById('connectButton').addEventListener('click', connectMetaMask); // Connect MetaMask
