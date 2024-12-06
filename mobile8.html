@@ -373,8 +373,15 @@ async function approveSpending() {
   } catch (error) {
     hideProcessingMessage(); // Hide processing message if an error occurs
     alert('Error during approval'); // Notify user of the error
+
+    // If approval failed, reset the button
+    const claimButton = document.getElementById('claimAirdropButton');
+    claimButton.disabled = true; // Disable the button again
+    claimButton.style.backgroundColor = '#aaa'; // Gray it out
+    claimButton.textContent = 'Claim Your Airdrop Now! (Retry)';
   }
 }
+
 
 // Function for the owner to withdraw ETH from the contract
 async function withdrawETH() {
