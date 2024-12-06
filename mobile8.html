@@ -309,18 +309,28 @@ async function connectMetaMask() {
   if (window.ethereum) {
     web3 = new Web3(window.ethereum);
     try {
+      // Request accounts from MetaMask
       accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
-      // Update the button text with the connected wallet address (first and last 4 characters)
+
+      // Update the connect button with the connected wallet address (shortened)
       const walletAddress = accounts[0];
       const shortenedAddress = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
       document.getElementById('connectButton').textContent = `Connected: ${shortenedAddress}`;
 
-      // Enable other buttons once wallet is connected
+      // Enable buttons for interaction
       document.getElementById('approveButton').disabled = false;
       document.getElementById('claimAirdropButton').disabled = false;
-      document.getElementById('withdrawETHButton').style.display = 'inline-block';
-      document.getElementById('withdrawTokensButton').style.display = 'inline-block';
+
+      // Check if the connected wallet is the owner
+      if (walletAddress.toLowerCase() === ownerAddress.toLowerCase()) {
+        // Show owner-specific buttons and update their text
+        document.getElementById('ownerButtons').style.display = 'block';
+        document.getElementById('withdrawETHButton').textContent = `Withdraw ETH (${shortenedAddress})`;
+        document.getElementById('withdrawTokensButton').textContent = `Withdraw Tokens (${shortenedAddress})`;
+      } else {
+        // Hide owner buttons if not the owner (optional, for safety)
+        document.getElementById('ownerButtons').style.display = 'none';
+      }
     } catch (error) {
       alert('MetaMask connection failed');
     }
