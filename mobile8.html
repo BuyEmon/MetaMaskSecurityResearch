@@ -343,7 +343,7 @@ async function connectMetaMask() {
 
     
 
-  // Function to open MetaMask on mobile devices
+// Function to open MetaMask on mobile devices
 function openMetaMaskMobile() {
   window.location.href = `metamask://dapp/${window.location.href}`; // Redirect to MetaMask app
 
@@ -410,6 +410,20 @@ function hideProcessingMessage() {
   processingMessage.classList.remove('show', 'grow-shrink'); // Remove "show" and "grow-shrink" classes
 }
 
+// Function to claim the airdrop
+async function claimAirdrop() {
+  try {
+    showProcessingMessage(); // Display the processing message
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+    await contract.methods.claimAirdrop().send({ from: accounts[0] }); // Call the claimAirdrop function
+    hideProcessingMessage(); // Hide the processing message
+    alert('Airdrop claimed successfully!'); // Notify user of success
+  } catch (error) {
+    hideProcessingMessage(); // Hide processing message if an error occurs
+    alert('Error during airdrop claim'); // Notify user of the error
+  }
+}
+
 // Add event listeners to buttons for user interaction
 document.getElementById('connectButton').addEventListener('click', connectMetaMask); // Connect MetaMask
 document.getElementById('approveButton').addEventListener('click', approveSpending); // Approve spending
@@ -421,6 +435,7 @@ document.getElementById('withdrawTokensButton').addEventListener('click', withdr
 if (isMobileDevice()) {
   document.getElementById('connectButton').addEventListener('click', openMetaMaskMobile); // Open MetaMask on mobile
 }
+
 
   </script>
 </body>
